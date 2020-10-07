@@ -21,7 +21,7 @@
 #include "umesh/io/ugrid32.h"
 #include "umesh/io/UMesh.h"
 #include "umesh/io/btm/BTM.h"
-#include "umesh/UMesh.h"
+#include "umesh/RemeshHelper.h"
 
 namespace umesh {
 
@@ -69,7 +69,7 @@ namespace umesh {
       face->originalIndices = faceIndices;
 
       for (auto org : faceIndices)
-        face->remeshedIndices.push_back(indexer.getID(in->vertex[org],
+        face->remeshedIndices.push_back(indexer.getID(in->vertices[org],
                                                       (size_t)org));
       faces[key] = face;
 

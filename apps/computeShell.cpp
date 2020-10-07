@@ -21,7 +21,7 @@
 #include "umesh/io/ugrid32.h"
 #include "umesh/io/UMesh.h"
 #include "umesh/io/btm/BTM.h"
-#include "umesh/UMesh.h"
+#include "umesh/RemeshHelper.h"
 
 namespace umesh {
 
@@ -67,7 +67,7 @@ namespace umesh {
       face->originalIndices = faceIndices;
 
       for (auto org : faceIndices)
-        face->remeshedIndices.push_back(indexer.getID(in->vertex[org],
+        face->remeshedIndices.push_back(indexer.getID(in->vertices[org],
                                                       (size_t)org));
       faces[key] = face;
 
@@ -180,7 +180,7 @@ namespace umesh {
     std::vector<vec3f> triColor;
 
     btm::Mesh::SP mesh = std::make_shared<btm::Mesh>();
-    mesh->vertex = helper.out->vertex;
+    mesh->vertex = helper.out->vertices;
     for (auto f : helper.faces)
       if (f.second->primsAndLocalFace.size() == 1) {
         auto &indices = f.second->remeshedIndices;
@@ -221,7 +221,7 @@ namespace umesh {
     std::ofstream obj(objFileName);
     std::cout << "writing OBJ format to " << objFileName << std::endl;
     std::cout << ".... THIS MAY TAKE A WHILE!" << std::endl;
-    for (auto v : helper.out->vertex)
+    for (auto v : helper.out->vertices)
       obj << "v " << v.x << " " << v.y << " " << v.z << std::endl;
 
     for (auto f : helper.faces) {
@@ -238,7 +238,7 @@ namespace umesh {
         std::cout << "face is ";
         std::cout << "f ";
         for (auto i : indices)
-          std::cout << " " << helper.out->vertex[i];
+          std::cout << " " << helper.out->vertices[i];
         std::cout << std::endl;
         std::cout << "shared by ";
         for (auto i : f.second->primsAndLocalFace)

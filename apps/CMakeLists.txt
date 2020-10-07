@@ -18,6 +18,17 @@ add_definitions(${OWL_CXX_FLAGS})
 find_package(CUDA)
 
 # ------------------------------------------------------------------
+# print basic info of a umesh: #verts, tris, quads, tets, etc, as well
+# as bounding box.
+# ------------------------------------------------------------------
+add_executable(umeshInfo
+  info.cpp
+  )
+target_link_libraries(umeshInfo
+  umesh
+  )
+
+# ------------------------------------------------------------------
 # tetrahedralize a (general) umesh into a tet-only umesh, by
 # introducing new vertices into quad centers
 # ------------------------------------------------------------------

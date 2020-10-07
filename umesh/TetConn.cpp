@@ -57,7 +57,7 @@ namespace umesh {
         ("cowardly refusing to compute tet-connectivity on a mesh "
          "that contains non-tet elements .... ");
     
-    if (in.vertex.size() >= (1ull<<31))
+    if (in.vertices.size() >= (1ull<<31))
       throw std::runtime_error("number of input vertices too large - would overflow");
     if (in.tets.size() >= (1ull<<31))
       throw std::runtime_error("number of input vertices too large - would overflow");
@@ -138,17 +138,17 @@ namespace umesh {
       PRINT(faceIdx);
       PRINT(side);
       PRINT(in.tets[face.tetIdx[side]]);
-      PRINT(volume(in.vertex,in.tets[face.tetIdx[side]]));
-      PRINT(volume(in.vertex,in.tets[tetIdx]));
+      PRINT(volume(in.vertices,in.tets[face.tetIdx[side]]));
+      PRINT(volume(in.vertices,in.tets[tetIdx]));
       PRINT(face.tetIdx[0]);
       PRINT(face.tetIdx[1]);
-      PRINT(in.vertex[in.tets[face.tetIdx[side]].x]);
-      PRINT(in.vertex[in.tets[face.tetIdx[side]].y]);
-      PRINT(in.vertex[in.tets[face.tetIdx[side]].z]);
+      PRINT(in.vertices[in.tets[face.tetIdx[side]].x]);
+      PRINT(in.vertices[in.tets[face.tetIdx[side]].y]);
+      PRINT(in.vertices[in.tets[face.tetIdx[side]].z]);
 
-      PRINT(in.vertex[in.tets[tetIdx].x]);
-      PRINT(in.vertex[in.tets[tetIdx].y]);
-      PRINT(in.vertex[in.tets[tetIdx].z]);
+      PRINT(in.vertices[in.tets[tetIdx].x]);
+      PRINT(in.vertices[in.tets[tetIdx].y]);
+      PRINT(in.vertices[in.tets[tetIdx].z]);
 
       throw std::runtime_error("face with more than one tet on same side!?");
     }

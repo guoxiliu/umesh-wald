@@ -26,6 +26,9 @@ add_library(umesh
   UMesh.h
   UMesh.cpp
 
+  RemeshHelper.h
+  RemeshHelper.cpp
+
   TetConn.h
   TetConn.cpp
   

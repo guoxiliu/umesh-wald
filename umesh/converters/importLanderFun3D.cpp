@@ -15,7 +15,7 @@
 // ======================================================================== //
 
 #include "umesh/io/ugrid32.h"
-#include "umesh/io/UMesh.h"
+#include "umesh/RemeshHelper.h"
 
 namespace umesh {
 
@@ -53,8 +53,8 @@ namespace umesh {
       if (!file.good())
         throw std::runtime_error("error opening scalars file....");
       
-      scalars.resize(mesh->vertex.size());
-      size_t numBytes = sizeof(float)*mesh->vertex.size();
+      scalars.resize(mesh->vertices.size());
+      size_t numBytes = sizeof(float)*mesh->vertices.size();
 
       file.seekg(timeStep*numBytes,
                  timeStep<0
@@ -112,7 +112,7 @@ namespace umesh {
         auto in = mesh->tets[i];
         if (!(i % 100000)) { std::cout << "." << std::flush; };//PRINT(i); PRINT(in); }
         UMesh::Tet out;
-        translate((uint32_t*)&out,(const uint32_t*)&in,4,mesh->vertex,fileID);
+        translate((uint32_t*)&out,(const uint32_t*)&in,4,mesh->vertices,fileID);
         merged->tets.push_back(out);
       }
         std::cout << std::endl;
@@ -121,7 +121,7 @@ namespace umesh {
       for (int i=0;i<meta.pyrs;i++) {
         auto in = mesh->pyrs[i];
         UMesh::Pyr out;
-        translate((uint32_t*)&out,(const uint32_t*)&in,5,mesh->vertex,fileID);
+        translate((uint32_t*)&out,(const uint32_t*)&in,5,mesh->vertices,fileID);
         merged->pyrs.push_back(out);
       }
       
@@ -129,7 +129,7 @@ namespace umesh {
       for (int i=0;i<meta.wedges;i++) {
         auto in = mesh->wedges[i];
         UMesh::Wedge out;
-        translate((uint32_t*)&out,(const uint32_t*)&in,6,mesh->vertex,fileID);
+        translate((uint32_t*)&out,(const uint32_t*)&in,6,mesh->vertices,fileID);
         merged->wedges.push_back(out);
       }
 
@@ -137,12 +137,12 @@ namespace umesh {
       for (int i=0;i<meta.hexes;i++) {
         auto in = mesh->hexes[i];
         UMesh::Hex out;
-        translate((uint32_t*)&out,(const uint32_t*)&in,8,mesh->vertex,fileID);
+        translate((uint32_t*)&out,(const uint32_t*)&in,8,mesh->vertices,fileID);
         merged->hexes.push_back(out);
       }
       
       std::cout << " >>> done part " << fileID << std::endl;
-      PRINT(prettyNumber(merged->vertex.size()));
+      PRINT(prettyNumber(merged->vertices.size()));
       PRINT(prettyNumber(merged->tets.size()));
       PRINT(prettyNumber(merged->pyrs.size()));
       PRINT(prettyNumber(merged->wedges.size()));
@@ -151,25 +151,25 @@ namespace umesh {
     }
     
     uint32_t translate(uint32_t in,
-                       const std::vector<vec3f> &vertex,
+                       const std::vector<vec3f> &vertices,
                        int fileID)
     {
       if (scalars.empty()) {
         size_t tag = (size_t(fileID) << 32) | in;
-        return indexer.getID(vertex[in],tag);
+        return indexer.getID(vertices[in],tag);
       }
       else
-        return indexer.getID(vertex[in],scalars[in]);
+        return indexer.getID(vertices[in],scalars[in]);
     }
     
     void translate(uint32_t *out,
                    const uint32_t *in,
                    int N,
-                   const std::vector<vec3f> &vertex,
+                   const std::vector<vec3f> &vertices,
                    int fileID)
     {
       for (int i=0;i<N;i++)
-        out[i] = translate(in[i],vertex,fileID);
+        out[i] = translate(in[i],vertices,fileID);
     }
     
     UMesh::SP merged;
@@ -228,7 +228,7 @@ namespace umesh {
     
     std::cout << "done all parts, saving output to "
               << outFileName << std::endl;
-    io::saveBinaryUMesh(outFileName,mesh.merged);
+    mesh.merged->saveTo(outFileName);
     std::cout << "done all ..." << std::endl;
   }
   

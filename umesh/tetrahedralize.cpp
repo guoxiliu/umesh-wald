@@ -23,11 +23,11 @@ namespace umesh {
       : in(in),
         out(std::make_shared<UMesh>())
     {
-      out->vertex = in->vertex;
+      out->vertices = in->vertices;
       if (in->perVertex) {
         out->perVertex = std::make_shared<Attribute>();
-        out->perVertex->name  = in->perVertex->name;
-        out->perVertex->value = in->perVertex->value;
+        out->perVertex->name   = in->perVertex->name;
+        out->perVertex->values = in->perVertex->values;
       }
     }
 
@@ -37,10 +37,10 @@ namespace umesh {
           || tet.y == tet.z || tet.y == tet.w
           || tet.z == tet.w)
         return;
-      vec3f a = out->vertex[tet.x];
-      vec3f b = out->vertex[tet.y];
-      vec3f c = out->vertex[tet.z];
-      vec3f d = out->vertex[tet.w];
+      vec3f a = out->vertices[tet.x];
+      vec3f b = out->vertices[tet.y];
+      vec3f c = out->vertices[tet.z];
+      vec3f d = out->vertices[tet.w];
       float volume = dot(d-a,cross(b-a,c-a));
       if (volume == 0.f) return;
 
@@ -71,11 +71,11 @@ namespace umesh {
 
     void add(const UMesh::Pyr &pyr, const std::string &dbg="")
     {
-      // PRINT(out->vertex[pyr[0]]);
-      // PRINT(out->vertex[pyr[1]]);
-      // PRINT(out->vertex[pyr[2]]);
-      // PRINT(out->vertex[pyr[3]]);
-      // PRINT(out->vertex[pyr[4]]);
+      // PRINT(out->vertices[pyr[0]]);
+      // PRINT(out->vertices[pyr[1]]);
+      // PRINT(out->vertices[pyr[2]]);
+      // PRINT(out->vertices[pyr[3]]);
+      // PRINT(out->vertices[pyr[4]]);
       int base = getCenter({pyr[0],pyr[1],pyr[2],pyr[3]});
       add(UMesh::Tet(pyr[0],pyr[1],base,pyr[4]),dbg+"pyr0");
       add(UMesh::Tet(pyr[1],pyr[2],base,pyr[4]),dbg+"pyr1");
@@ -94,8 +94,8 @@ namespace umesh {
       // PRINT(center);
 
       // for (int i=0;i<6;i++)
-      //   PRINT(out->vertex[wedge[i]]);
-      // PRINT(out->vertex[center]);
+      //   PRINT(out->vertices[wedge[i]]);
+      // PRINT(out->vertices[center]);
       // bottom face to center
       add(UMesh::Pyr(wedge[0],wedge[1],wedge[4],wedge[3],center),"wed1");
       // left face to center
@@ -136,22 +136,22 @@ namespace umesh {
       auto it = newVertices.find(idx);
       if (it != newVertices.end())
         return it->second;
-      int ID = out->vertex.size();
+      int ID = out->vertices.size();
       
       vec3f centerPos = 0.f;
       float centerVal = 0.f;
       for (auto i : idx) {
         if (in->perVertex)
-          centerVal += in->perVertex->value[i];
-        centerPos += in->vertex[i];
+          centerVal += in->perVertex->values[i];
+        centerPos += in->vertices[i];
       }
       centerVal *= (1.f/idx.size());
       centerPos *= (1.f/idx.size());
       
       newVertices[idx] = ID;
-      out->vertex.push_back(centerPos);
+      out->vertices.push_back(centerPos);
       if (out->perVertex)
-        out->perVertex->value.push_back(centerVal);
+        out->perVertex->values.push_back(centerVal);
       return ID;
     }
 

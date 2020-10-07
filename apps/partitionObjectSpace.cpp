@@ -23,7 +23,7 @@
 
 #include "umesh/io/ugrid32.h"
 #include "umesh/io/UMesh.h"
-#include "umesh/UMesh.h"
+#include "umesh/RemeshHelper.h"
 #include <queue>
 
 namespace umesh {

@@ -36,35 +36,35 @@ namespace umesh {
       return UGrid64Loader(dataFileName,scalarFileName).result;
     }
 
-    inline bool notDegenerate(const std::vector<vec3f> &vertex,
+    inline bool notDegenerate(const std::vector<vec3f> &vertices,
                               const size_t index[],
                               const size_t N)
     {
       box3f bounds;
       for (int i=0;i<N;i++) {
         assert(index[i] >= 0);
-        assert(index[i] < vertex.size());
-        bounds.extend(vertex[index[i]]);
+        assert(index[i] < vertices.size());
+        bounds.extend(vertices[index[i]]);
       }
       bool degen// = (area(bounds) == 0.f);
         =  (bounds.lower.x==bounds.upper.x)
         || (bounds.lower.y==bounds.upper.y)
         || (bounds.lower.z==bounds.upper.z);
       if (N == 4 &&
-          (vertex[index[0]] == vertex[index[1]] ||
-           vertex[index[0]] == vertex[index[2]] ||
-           vertex[index[0]] == vertex[index[3]] ||
-           vertex[index[1]] == vertex[index[2]] ||
-           vertex[index[1]] == vertex[index[3]] ||
-           vertex[index[2]] == vertex[index[3]])) {
+          (vertices[index[0]] == vertices[index[1]] ||
+           vertices[index[0]] == vertices[index[2]] ||
+           vertices[index[0]] == vertices[index[3]] ||
+           vertices[index[1]] == vertices[index[2]] ||
+           vertices[index[1]] == vertices[index[3]] ||
+           vertices[index[2]] == vertices[index[3]])) {
         if (!degen) {
           static int extraDegenTets = 0;
           // PRINT(bounds);
           // PRINT(index);
-          // PRINT(vertex[index[0]]);
-          // PRINT(vertex[index[1]]);
-          // PRINT(vertex[index[2]]);
-          // PRINT(vertex[index[3]]);
+          // PRINT(vertices[index[0]]);
+          // PRINT(vertices[index[1]]);
+          // PRINT(vertices[index[2]]);
+          // PRINT(vertices[index[3]]);
           extraDegenTets++;
           // PRINT(extraDegenTets);
         }
@@ -76,7 +76,7 @@ namespace umesh {
         // PING;
         // for (int i=0;i<N;i++) {
         //   PRINT(index[i]);
-        //   PRINT(vertex[index[i]]);
+        //   PRINT(vertices[index[i]]);
         // }
         
         static size_t numDegen = 0;
@@ -110,7 +110,7 @@ namespace umesh {
       
       result->bounds = box3f();
       std::cout << "#tetty.io: reading " << prettyNumber(header.n_verts) << " vertices ..." << std::endl;
-      result->vertex.reserve(header.n_verts);
+      result->vertices.reserve(header.n_verts);
       for (size_t i=0;i<header.n_verts;i++) {
         double pos[3];
         readArray(data,pos,3);
@@ -124,8 +124,8 @@ namespace umesh {
             pos[2] > +1e20f) {
           std::cout << "Degen vertex " << i << " " << pos << std::endl;
         }
-        result->vertex.push_back(v);
-        // if (i < N_PRINT) std::cout << " vertex[" << i << "] = " << v << std::endl;
+        result->vertices.push_back(v);
+        // if (i < N_PRINT) std::cout << " vertices[" << i << "] = " << v << std::endl;
       }
 
       if (scalarFileName != "") {
@@ -136,7 +136,7 @@ namespace umesh {
           // double val;
           float val;
           readElement(scalar,val);
-          result->perVertex->value.push_back(val);
+          result->perVertex->values.push_back(val);
           if (val < -1e20f ||
               val > +1e20f) {
             std::cout << "Degen vertex " << i << " " << val << std::endl;
@@ -154,7 +154,7 @@ namespace umesh {
         readArray(data,idx,3);
         for (int i=0;i<3;i++) idx[i] -= 1;
         
-        if (notDegenerate(result->vertex,idx,3))
+        if (notDegenerate(result->vertices,idx,3))
           result->triangles.push_back(vec3i((int)idx[0], (int)idx[1], (int)idx[2]));
       }
 
@@ -166,7 +166,7 @@ namespace umesh {
         readArray(data,idx,4);
         for (int i=0;i<4;i++) idx[i] -= 1;
         
-        if (notDegenerate(result->vertex,idx,4))
+        if (notDegenerate(result->vertices,idx,4))
           result->quads.push_back(vec4i((int)idx[0], (int)idx[1], (int)idx[2], (int)idx[3]));
       }
 
@@ -197,7 +197,7 @@ namespace umesh {
                                   (int)idx[1],
                                   (int)idx[2],
                                   (int)idx[3]);
-             isGood[i] = notDegenerate(result->vertex,idx,4);
+             isGood[i] = notDegenerate(result->vertices,idx,4);
              vecTets[i] = tet;
            }});
       for (size_t i=0;i<header.n_tets;i++)
@@ -212,7 +212,7 @@ namespace umesh {
         for (int i=0;i<4;i++) idx[i] -= 1;
         
         const UMesh::Tet tet((int)idx[0],(int)idx[1],(int)idx[2],(int)idx[3]);
-        bool good = notDegenerate(result->vertex,idx,4);
+        bool good = notDegenerate(result->vertices,idx,4);
         if (good)
           if (result->tets.size() < maxTets)
             result->tets.push_back(tet);
@@ -228,7 +228,7 @@ namespace umesh {
         readArray(data,idx,5);
         for (int i=0;i<5;i++) idx[i] -= 1;
 
-        if (notDegenerate(result->vertex,idx,5))
+        if (notDegenerate(result->vertices,idx,5))
           result->pyrs.push_back
             (UMesh::Pyr({(int)idx[0],(int)idx[1],(int)idx[2],(int)idx[3],(int)idx[4]}));
       }
@@ -241,7 +241,7 @@ namespace umesh {
         readArray(data,idx,6);
         for (int i=0;i<6;i++) idx[i] -= 1;
         
-        if (notDegenerate(result->vertex,idx,6))
+        if (notDegenerate(result->vertices,idx,6))
           result->wedges.push_back
 #if 1
             /*! APPARENTLY, ugrid32 dot NOT use the VTK ordering for
@@ -263,7 +263,7 @@ namespace umesh {
         readArray(data,idx,8);
         for (int i=0;i<8;i++) idx[i] -= 1;
 
-        if (notDegenerate(result->vertex,idx,8))
+        if (notDegenerate(result->vertices,idx,8))
           result->hexes.push_back
             ({ (int)idx[0],(int)idx[1],(int)idx[2],(int)idx[3],
                (int)idx[4],(int)idx[5],(int)idx[6],(int)idx[7]});

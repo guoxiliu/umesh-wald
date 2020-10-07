@@ -25,11 +25,11 @@ namespace umesh {
   const size_t bum_magic = 0x234235566ULL;
   
   /*! helper functoin for printf debugging - puts the four elemnt
-      sizes into a human-readable (short) string*/
+    sizes into a human-readable (short) string*/
   std::string sizeString(UMesh::SP mesh)
   {
     std::stringstream str;
-    str << "v:" << prettyNumber(mesh->vertex.size())
+    str << "v:" << prettyNumber(mesh->vertices.size())
         << ",t:" << prettyNumber(mesh->tets.size())
         << ",p:" << prettyNumber(mesh->pyrs.size())
         << ",w:" << prettyNumber(mesh->wedges.size())
@@ -38,15 +38,15 @@ namespace umesh {
   }
   
 
-    /*! write - binary - to given (bianry) stream */
-    void UMesh::writeTo(std::ostream &out) const
-    {
+  /*! write - binary - to given (bianry) stream */
+  void UMesh::writeTo(std::ostream &out) const
+  {
     io::writeElement(out,bum_magic);
-    io::writeVector(out,vertex);
-    // PRINT(perVertex->value[0]);
-    // PRINT(perVertex->value.back());
+    io::writeVector(out,vertices);
+    // PRINT(perVertex->values[0]);
+    // PRINT(perVertex->values.back());
     if (perVertex) {
-      io::writeVector(out,perVertex->value);
+      io::writeVector(out,perVertex->values);
     } else {
       std::vector<float> dummy;
       io::writeVector(out,dummy);
@@ -58,7 +58,7 @@ namespace umesh {
     io::writeVector(out,wedges);
     io::writeVector(out,hexes);
     io::writeVector(out,vertexTag);
-    }
+  }
   
   /*! write - binary - to given file */
   void UMesh::saveTo(const std::string &fileName) const
@@ -74,13 +74,13 @@ namespace umesh {
     io::readElement(in,magic);
     if (magic != bum_magic)
       throw std::runtime_error("wrong magic number in umesh file ...");
-    io::readVector(in,this->vertex,"vertices");
+    io::readVector(in,this->vertices,"vertices");
 
     std::vector<float> scalars;
     io::readVector(in,scalars,"scalars");
     if (!scalars.empty()) {
       this->perVertex = std::make_shared<Attribute>();
-      this->perVertex->value = scalars;
+      this->perVertex->values = scalars;
       this->perVertex->finalize();
     }
       
@@ -117,14 +117,14 @@ namespace umesh {
 
 #if 1
     std::mutex mutex;
-    parallel_for_blocked(0,value.size(),16*1024,[&](size_t begin, size_t end) {
-                                                  range1f rangeValueRange;
-                                                  for (size_t i=begin;i<end;i++)
-                                                    rangeValueRange.extend(value[i]);
-                                                  std::lock_guard<std::mutex> lock(mutex);
-                                                  valueRange.extend(rangeValueRange.lower);
-                                                  valueRange.extend(rangeValueRange.upper);
-                                                });
+    parallel_for_blocked(0,values.size(),16*1024,[&](size_t begin, size_t end) {
+                                                   range1f rangeValueRange;
+                                                   for (size_t i=begin;i<end;i++)
+                                                     rangeValueRange.extend(values[i]);
+                                                   std::lock_guard<std::mutex> lock(mutex);
+                                                   valueRange.extend(rangeValueRange.lower);
+                                                   valueRange.extend(rangeValueRange.upper);
+                                                 });
 #else
     for (auto &v : value) valueRange.extend(v);
     // for (auto v : vertex) bounds.extend(v);
@@ -138,20 +138,18 @@ namespace umesh {
   void UMesh::createPerVertexData()
   {
     std::cout << "=======================================================" << std::endl;
-    PING;
     
     if (perVertex) return;
 
     if (!perTet && !perHex)
       throw std::runtime_error("cannot generate per-vertex interpolated scalar field: data set has neither per-cell nor per-vertex data fields assigned!?");
 
-    PRINT(vertex.size());
-    this->perVertex = std::make_shared<Attribute>(vertex.size());
+    this->perVertex = std::make_shared<Attribute>(vertices.size());
 
     struct Helper {
       Helper(Attribute::SP perVertex)
         : perVertex(perVertex),
-          renormalize_weights(perVertex->value.size())
+          renormalize_weights(perVertex->values.size())
       {
         assert(perVertex);
       }
@@ -159,13 +157,13 @@ namespace umesh {
       {
         for (int i=0;i<renormalize_weights.size();i++)
           if (renormalize_weights[i] > 0)
-            perVertex->value[i] *= 1.f/renormalize_weights[i];
+            perVertex->values[i] *= 1.f/renormalize_weights[i];
         perVertex->finalize();
         PRINT(perVertex->valueRange);
       }
       
       void splat(float value, int vertexID) {
-        perVertex->value[vertexID] += value;
+        perVertex->values[vertexID] += value;
         renormalize_weights[vertexID] += 1.f;
       }
       Attribute::SP perVertex;
@@ -175,20 +173,20 @@ namespace umesh {
     assert(pyrs.empty()); // not implemented
     assert(wedges.empty()); // not implemented
     for (int i=0;i<tets.size();i++) {
-      helper.splat(perTet->value[i],tets[i].x);
-      helper.splat(perTet->value[i],tets[i].y);
-      helper.splat(perTet->value[i],tets[i].z);
-      helper.splat(perTet->value[i],tets[i].w);
+      helper.splat(perTet->values[i],tets[i].x);
+      helper.splat(perTet->values[i],tets[i].y);
+      helper.splat(perTet->values[i],tets[i].z);
+      helper.splat(perTet->values[i],tets[i].w);
     }
     for (int i=0;i<hexes.size();i++) {
-      helper.splat(perHex->value[i],hexes[i].base.x);
-      helper.splat(perHex->value[i],hexes[i].base.y);
-      helper.splat(perHex->value[i],hexes[i].base.z);
-      helper.splat(perHex->value[i],hexes[i].base.w);
-      helper.splat(perHex->value[i],hexes[i].top.x);
-      helper.splat(perHex->value[i],hexes[i].top.y);
-      helper.splat(perHex->value[i],hexes[i].top.z);
-      helper.splat(perHex->value[i],hexes[i].top.w);
+      helper.splat(perHex->values[i],hexes[i].base.x);
+      helper.splat(perHex->values[i],hexes[i].base.y);
+      helper.splat(perHex->values[i],hexes[i].base.z);
+      helper.splat(perHex->values[i],hexes[i].base.w);
+      helper.splat(perHex->values[i],hexes[i].top.x);
+      helper.splat(perHex->values[i],hexes[i].top.y);
+      helper.splat(perHex->values[i],hexes[i].top.z);
+      helper.splat(perHex->values[i],hexes[i].top.w);
     }
 
     // aaaaand .... free the old per-cell data
@@ -228,5 +226,56 @@ namespace umesh {
        });
   }
 
+
+  /*! finalize a mesh, and compute min/max ranges where required */
+  void UMesh::finalize()
+  {
+    if (perVertex) perVertex->finalize();
+    if (perHex)    perHex->finalize();
+    if (perTet)    perTet->finalize();
+    bounds = box3f();
+    std::mutex mutex;
+    parallel_for_blocked(0,vertices.size(),16*1024,[&](size_t begin, size_t end) {
+                                                     box3f rangeBounds;
+                                                     for (size_t i=begin;i<end;i++)
+                                                       rangeBounds.extend(vertices[i]);
+                                                     std::lock_guard<std::mutex> lock(mutex);
+                                                     bounds.extend(rangeBounds);
+                                                   });
+  }
+  
+  /*! print some basic info of this mesh to std::cout */
+  void UMesh::print()
+  {
+    std::cout << "#verts  : " << prettyNumber(vertices.size()) << std::endl;
+    std::cout << "#tris  : " << prettyNumber(triangles.size()) << std::endl;
+    std::cout << "#quads : " << prettyNumber(quads.size()) << std::endl;
+    std::cout << "#tets  : " << prettyNumber(tets.size()) << std::endl;
+    std::cout << "#pyrs  : " << prettyNumber(pyrs.size()) << std::endl;
+    std::cout << "#wedges: " << prettyNumber(wedges.size()) << std::endl;
+    std::cout << "#hexes : " << prettyNumber(hexes.size()) << std::endl;
+  }
+  
+  /*! return a string of the form "UMesh{#tris=...}" */
+  std::string UMesh::toString() const
+  {
+    std::stringstream ss;
+
+    ss << "Umesh(";
+    ss << "#tris=" << prettyNumber(triangles.size());
+    ss << ",#quads=" << prettyNumber(quads.size());
+    ss << ",#tets=" << prettyNumber(tets.size());
+    ss << ",#pyrs=" << prettyNumber(pyrs.size());
+    ss << ",#wedges=" << prettyNumber(wedges.size());
+    ss << ",#hexes=" << prettyNumber(hexes.size());
+    ss << ",#verts=" << prettyNumber(vertices.size());
+    if (perVertex) {
+      ss << ",scalars=yes(name='" << perVertex->name << "')";
+    } else {
+      ss << ",scalars=no";
+    }
+    ss << ")";
+    return ss.str();
+  }
 
 } // ::tetty
