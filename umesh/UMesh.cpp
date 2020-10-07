@@ -247,34 +247,43 @@ namespace umesh {
   /*! print some basic info of this mesh to std::cout */
   void UMesh::print()
   {
-    std::cout << "#verts  : " << prettyNumber(vertices.size()) << std::endl;
-    std::cout << "#tris  : " << prettyNumber(triangles.size()) << std::endl;
-    std::cout << "#quads : " << prettyNumber(quads.size()) << std::endl;
-    std::cout << "#tets  : " << prettyNumber(tets.size()) << std::endl;
-    std::cout << "#pyrs  : " << prettyNumber(pyrs.size()) << std::endl;
-    std::cout << "#wedges: " << prettyNumber(wedges.size()) << std::endl;
-    std::cout << "#hexes : " << prettyNumber(hexes.size()) << std::endl;
+    std::cout << toString(false);
   }
   
   /*! return a string of the form "UMesh{#tris=...}" */
-  std::string UMesh::toString() const
+  std::string UMesh::toString(bool compact) const
   {
     std::stringstream ss;
 
-    ss << "Umesh(";
-    ss << "#tris=" << prettyNumber(triangles.size());
-    ss << ",#quads=" << prettyNumber(quads.size());
-    ss << ",#tets=" << prettyNumber(tets.size());
-    ss << ",#pyrs=" << prettyNumber(pyrs.size());
-    ss << ",#wedges=" << prettyNumber(wedges.size());
-    ss << ",#hexes=" << prettyNumber(hexes.size());
-    ss << ",#verts=" << prettyNumber(vertices.size());
-    if (perVertex) {
-      ss << ",scalars=yes(name='" << perVertex->name << "')";
+    if (compact) {
+      ss << "Umesh(";
+      ss << "#tris=" << prettyNumber(triangles.size());
+      ss << ",#quads=" << prettyNumber(quads.size());
+      ss << ",#tets=" << prettyNumber(tets.size());
+      ss << ",#pyrs=" << prettyNumber(pyrs.size());
+      ss << ",#wedges=" << prettyNumber(wedges.size());
+      ss << ",#hexes=" << prettyNumber(hexes.size());
+      ss << ",#verts=" << prettyNumber(vertices.size());
+      if (perVertex) {
+        ss << ",scalars=yes(name='" << perVertex->name << "')";
+      } else {
+        ss << ",scalars=no";
+      }
+      ss << ")";
     } else {
-      ss << ",scalars=no";
+      ss << "#verts : " << prettyNumber(vertices.size()) << std::endl;
+      ss << "#tris  : " << prettyNumber(triangles.size()) << std::endl;
+      ss << "#quads : " << prettyNumber(quads.size()) << std::endl;
+      ss << "#tets  : " << prettyNumber(tets.size()) << std::endl;
+      ss << "#pyrs  : " << prettyNumber(pyrs.size()) << std::endl;
+      ss << "#wedges: " << prettyNumber(wedges.size()) << std::endl;
+      ss << "#hexes : " << prettyNumber(hexes.size()) << std::endl;
+      ss << "bounds : " << bounds << std::endl;
+      if (perVertex)
+        ss << "values : " << getValueRange() << std::endl;
+      else
+        ss << "values : <none>" << std::endl;
     }
-    ss << ")";
     return ss.str();
   }
 

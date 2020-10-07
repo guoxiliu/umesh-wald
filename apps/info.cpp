@@ -37,7 +37,6 @@ namespace umesh {
     bool skipActualTets = false;
     for (int i=1;i<ac;i++) {
       const std::string arg = av[i];
-      PRINT(arg);
       if (arg == "-h")
         usage();
       else if (arg[0] != '-')
@@ -51,7 +50,7 @@ namespace umesh {
     std::cout << "loading umesh from " << inFileName << std::endl;
     UMesh::SP in = io::loadBinaryUMesh(inFileName);
 
-    std::cout << "UMesh info:\n" << in->toString() << std::endl;
+    std::cout << "UMesh info:\n" << in->toString(false) << std::endl;
   }
   
 } // ::umesh

@@ -120,7 +120,7 @@ namespace umesh {
     };
 
     /*! return a string of the form "UMesh{#tris=...}" */
-    std::string toString() const;
+    std::string toString(bool compact=true) const;
     
     /*! print some basic info of this mesh to std::cout */
     void print();
