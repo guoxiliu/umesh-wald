@@ -23,9 +23,9 @@ namespace umesh {
   void usage(const std::string error="")
   {
     if (error != "")
-      std::cerr << "Error : " << error  << "\n\n";
+      std::cerr << "\nError : " << error  << "\n\n";
 
-    std::cout << "Usage: ./umeshTetrahedralize <in.umesh> -o <out.umesh> [--skip-actual-tets]" << std::endl;;
+    std::cout << "Usage: ./umeshInfo <in.umesh>\n\n";
     exit(error != "");
   };
   
