@@ -36,6 +36,7 @@ add_library(umesh
   # specially modified fun3d file format that uses 64-bit counters and
   # indices
   io/ugrid64.cpp
+  
   # "regular" fun3d files use 32-bit indices, so this is the "regular"
   # fun3d format
   io/ugrid32.cpp
@@ -46,12 +47,11 @@ add_library(umesh
   # "binary-triangle-mesh" format
   io/btm/BTM.cpp
 
-
+  # tetrahedralize a general umesh into a tet-mesh
   tetrahedralize.cpp
   )
 
 target_link_libraries(umesh
-#  ${optix_LIBRARY}
   ${OWL_LIBRARIES}
   )
 

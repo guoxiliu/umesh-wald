@@ -34,7 +34,7 @@ maintenance, not necessarily utmost performance.
 
 - a C++-11 capable compiler
 - CUDA (will be made optional at some point in time)
-- OWL (will be made optional at some point in time; all we need is the
+- OWL, as a submodule (will be made optional at some point in time; all we need is the
   owl::common vector library for vec3fs, and owl::parallel_for constructs)
 - optional: TBB (will parallelize some routines; will run scalar w/o TBB)
 
