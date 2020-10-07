@@ -61,11 +61,6 @@ target_link_libraries(umesh
 # ------------------------------------------------------------------
 add_subdirectory(converters)
 
-# ------------------------------------------------------------------
-# tools that operate on umeshes, such as tetrhaedralizer, computing
-# outside shell, etc.
-# ------------------------------------------------------------------
-add_subdirectory(tools)
 
 
 
