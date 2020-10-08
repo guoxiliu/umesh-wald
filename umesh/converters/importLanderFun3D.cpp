@@ -470,6 +470,7 @@ namespace umesh {
       std::cout << "timeSteps:";
       for (auto var : timeSteps) std::cout << " " << var;
       std::cout << std::endl;
+      exit(0);
     }
     
     MergedMesh mesh;
