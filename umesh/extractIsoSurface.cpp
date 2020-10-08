@@ -17,6 +17,9 @@
 #include "umesh/extractIsoSurface.h"
 #include <iterator>
 #include "owl/common/parallel/parallel_for.h"
+#if OWL_HAVE_TBB
+# include "tbb/parallel_sort.h"
+#endif
 
 namespace umesh {
 
@@ -484,7 +487,7 @@ namespace umesh {
 
     std::vector<FatVertex> fatVertices;
     
-    std::cout << "#iso-surface: pushing " << prettyNumber(in->tets.size())
+    std::cout << "#umesh.iso: pushing " << prettyNumber(in->tets.size())
               << " tets" << std::endl;
     owl::common::parallel_for_blocked
       (0,in->tets.size(),1024,
@@ -492,7 +495,7 @@ namespace umesh {
         doIsoSurfaceTets(fatVertices,mutex,in,begin,end,isoValue);
       });
 
-    std::cout << "#iso-surface: pushing " << prettyNumber(in->pyrs.size())
+    std::cout << "#umesh.iso: pushing " << prettyNumber(in->pyrs.size())
               << " pyramids" << std::endl;
     owl::common::parallel_for_blocked
       (0,in->pyrs.size(),1024,
@@ -500,7 +503,7 @@ namespace umesh {
         doIsoSurfacePyrs(fatVertices,mutex,in,begin,end,isoValue);
       });
 
-    std::cout << "#iso-surface: pushing " << prettyNumber(in->wedges.size())
+    std::cout << "#umesh.iso: pushing " << prettyNumber(in->wedges.size())
               << " wedges" << std::endl;
     owl::common::parallel_for_blocked
       (0,in->wedges.size(),1024,
@@ -508,7 +511,7 @@ namespace umesh {
         doIsoSurfaceWedges(fatVertices,mutex,in,begin,end,isoValue);
       });
 
-    std::cout << "#iso-surface: pushing " << prettyNumber(in->hexes.size())
+    std::cout << "#umesh.iso: pushing " << prettyNumber(in->hexes.size())
               << " hexes" << std::endl;
     owl::common::parallel_for_blocked
       (0,in->hexes.size(),1024,
@@ -516,17 +519,22 @@ namespace umesh {
         doIsoSurfaceHexes(fatVertices,mutex,in,begin,end,isoValue);
       });
 
-    std::cout << "#iso: creating vertex/index arrays ..." << std::endl;
     const int numFatVertices = fatVertices.size();
+    std::cout << "#umesh.iso: found " << prettyNumber(numFatVertices/3) << " triangles ..." << std::endl;
+    std::cout << "#umesh.iso: creating vertex/index arrays ..." << std::endl;
     for (int i=0;i<numFatVertices;i++)
       fatVertices[i].idx = i;
-    std::sort(fatVertices.begin(),fatVertices.end(),FatVertexCompare());
+    if (OWL_HAVE_TBB) {
+      tbb::parallel_sort(fatVertices.begin(),fatVertices.end(),FatVertexCompare());
+    } else {
+      std::sort(fatVertices.begin(),fatVertices.end(),FatVertexCompare());
+    }
 
     int numUniqueVertices = 0;
     for (int i=0;i<numFatVertices;i++)
       if (i==0 || fatVertices[i].pos != fatVertices[i-1].pos)
         ++numUniqueVertices;
-    std::cout << "#iso: found " << prettyNumber(numUniqueVertices) << " unique vertices ..." << std::endl;
+    std::cout << "#umesh.iso: found " << prettyNumber(numUniqueVertices) << " unique vertices ..." << std::endl;
     out->triangles.resize(numFatVertices/3);
     out->vertices.resize(numUniqueVertices);
     int uniqueVertexID = -1;
