@@ -551,9 +551,6 @@ namespace umesh {
                     "are three ints, and nothing but");
       ((int*)out->triangles.data())[vtx.idx] = uniqueVertexID;
     }
-
-    size_t numTriangles = out->vertices.size()/3;
-    out->triangles.resize(numTriangles);
     return out;
   }
   
