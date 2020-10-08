@@ -108,7 +108,7 @@ Example:
 	
 should produce an obj file that looks like this (ca 19M tris, rendered w/ ospray):
 
-[docs/png/lander-small-iso-0.2.png]
+!(docs/png/lander-small-iso-0.2.png)
 
 ## Compute Shared-Face Connectivity
 
