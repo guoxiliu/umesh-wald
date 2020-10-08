@@ -29,6 +29,27 @@ target_link_libraries(umeshInfo
   )
 
 # ------------------------------------------------------------------
+# import a OFF file to umesh format
+# ------------------------------------------------------------------
+add_executable(umeshImportOFF
+  importOFF.cpp
+  )
+target_link_libraries(umeshImportOFF
+  umesh
+  )
+
+
+# ------------------------------------------------------------------
+# import a OFF file to umesh format
+# ------------------------------------------------------------------
+add_executable(umeshImportUGrid64
+  importUGrid64.cpp
+  )
+target_link_libraries(umeshImportUGrid64
+  umesh
+  )
+
+# ------------------------------------------------------------------
 # tetrahedralize a (general) umesh into a tet-only umesh, by
 # introducing new vertices into quad centers
 # ------------------------------------------------------------------
