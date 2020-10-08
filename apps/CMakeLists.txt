@@ -41,6 +41,22 @@ target_link_libraries(umeshTetrahedralize
 
 
 # ------------------------------------------------------------------
+# given a umesh with volumetric elemnets (any sort), compute a new
+# umesh (containing only triangles) that contains the triangular
+# iso-surface for given iso-value. Input *must* have a per-vertex
+# scalar field, but can have any combinatoin of volumetric
+# elemnets; tris and quads in the input get ignored; input remains
+# unchanged. 
+# ------------------------------------------------------------------
+add_executable(umeshExtractIsoSurface
+  extractIsoSurface.cpp
+  )
+target_link_libraries(umeshExtractIsoSurface
+  umesh
+  )
+
+
+# ------------------------------------------------------------------
 # computes the connectivity (tet and facets per face, and faces per tet) for a given tet mesh. only allowed for tet meshes
 # ------------------------------------------------------------------
 add_executable(umeshComputeTetConnectivity

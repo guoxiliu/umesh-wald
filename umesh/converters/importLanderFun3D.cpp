@@ -133,12 +133,32 @@ namespace umesh {
         merged->wedges.push_back(out);
       }
 
-      std::cout << "merging in " << prettyNumber(meta.hexes) << " out of " << prettyNumber(mesh->hexes.size()) << " hexes" << std::endl;
+      std::cout << "merging in " << prettyNumber(meta.hexes)
+                << " out of " << prettyNumber(mesh->hexes.size())
+                << " hexes" << std::endl;
       for (int i=0;i<meta.hexes;i++) {
         auto in = mesh->hexes[i];
         UMesh::Hex out;
         translate((uint32_t*)&out,(const uint32_t*)&in,8,mesh->vertices,fileID);
         merged->hexes.push_back(out);
+      }
+      
+      std::cout << "merging in " << prettyNumber(mesh->triangles.size())
+                << " triangles" << std::endl;
+      for (int i=0;i<mesh->triangles.size();i++) {
+        auto in = mesh->triangles[i];
+        UMesh::Triangle out;
+        translate((uint32_t*)&out,(const uint32_t*)&in,3,mesh->vertices,fileID);
+        merged->triangles.push_back(out);
+      }
+      
+      std::cout << "merging in " << prettyNumber(mesh->quads.size())
+                << " quads" << std::endl;
+      for (int i=0;i<mesh->quads.size();i++) {
+        auto in = mesh->quads[i];
+        UMesh::Quad out;
+        translate((uint32_t*)&out,(const uint32_t*)&in,4,mesh->vertices,fileID);
+        merged->quads.push_back(out);
       }
       
       std::cout << " >>> done part " << fileID << std::endl;
