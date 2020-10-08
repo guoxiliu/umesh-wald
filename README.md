@@ -104,11 +104,11 @@ Also available programmatically via `umesh::extractIsoSurface(mesh, isoValue)`.
 Example:
 
     ./umeshExtractIsoSurface /space/lander-small-rho-9000.umesh \
-	--obj iso.obj --iso 1.5
+	--obj iso.obj --iso 0.2
 	
 should produce an obj file that looks like this (ca 19M tris, rendered w/ ospray):
 
-[docs/png/lander-small-iso-1.5.png]
+[docs/png/lander-small-iso-0.2.png]
 
 ## Compute Shared-Face Connectivity
 
