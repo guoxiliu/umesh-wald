@@ -243,13 +243,13 @@ namespace umesh {
   struct MergedMesh {
 
     MergedMesh() 
-      : merged(std::make_shared<UMesh>()),
-        indexer(*merged)
+      : merged(std::make_shared<UMesh>())
     {
     }
 
     void loadScalars(UMesh::SP mesh, int fileID,
-                     std::string &fieldName)
+                     std::string &fieldName,
+                     std::vector<long> &local_to_global)
     {
       if (scalarsPath == "")
         return;
@@ -263,6 +263,8 @@ namespace umesh {
       Header header;
       read_native_volume_header(scalarsFileName, &header);
 
+      local_to_global = header.local_to_global;
+      
       fieldName = variable;
       PRINT(fieldName);
       int time_step = timeStep;
@@ -323,10 +325,23 @@ namespace umesh {
       UMesh::SP mesh = io::UGrid32Loader::load(meshFileName);
 
       std::string fieldName;
-      loadScalars(mesh,fileID,fieldName);
+      loadScalars(mesh,fileID,fieldName,local_to_global);
 
-
+      size_t requiredVertexArraySize = merged->vertices.size();
+      for (auto globalID : local_to_global)
+        requiredVertexArraySize = std::max(requiredVertexArraySize,size_t(globalID)+1);
+      PRINT(requiredVertexArraySize);
+      if (!merged->perVertex) {
+        merged->perVertex = std::make_shared<Attribute>();
+        merged->perVertex->name = variable;
+      }
       
+      merged->perVertex->values.resize(requiredVertexArraySize);
+      merged->vertices.resize(requiredVertexArraySize);
+      for (int i=0;i<mesh->vertices.size();i++) {
+        merged->vertices[local_to_global[i]] = mesh->vertices[i];
+        merged->perVertex->values[local_to_global[i]] = scalars[i];
+      }
       // for (auto in : mesh->tets) {
       std::cout << "merging in " << prettyNumber(meta.tets) << " out of " << prettyNumber(mesh->tets.size()) << " tets" << std::endl;
       for (int i=0;i<meta.tets;i++) {
@@ -381,8 +396,7 @@ namespace umesh {
         translate((uint32_t*)&out,(const uint32_t*)&in,4,mesh->vertices,fileID);
         merged->quads.push_back(out);
       }
-      
-      std::cout << " >>> done part " << fileID << ", got " << merged->toString(false) << std::endl;
+      std::cout << " >>> done part " << fileID << ", got " << merged->toString(false) << " (note it's OK that bounds aren't set yet)" << std::endl;
       return true;
     }
     
@@ -390,12 +404,7 @@ namespace umesh {
                        const std::vector<vec3f> &vertices,
                        int fileID)
     {
-      if (scalars.empty()) {
-        size_t tag = (size_t(fileID) << 32) | in;
-        return indexer.getID(vertices[in],tag);
-      }
-      else
-        return indexer.getID(vertices[in],scalars[in]);
+      return local_to_global[in];
     }
     
     void translate(uint32_t *out,
@@ -409,7 +418,7 @@ namespace umesh {
     }
     
     UMesh::SP merged;
-    RemeshHelper indexer;
+    std::vector<long> local_to_global;
     /*! desired time step's scalars for current brick, if provided */
     std::vector<float> scalars;
   };
@@ -480,6 +489,8 @@ namespace umesh {
     for (int i=begin;i<(begin+num);i++)
       if (!mesh.addPart(i))
         break;
+
+    mesh.merged->finalize();
     
     std::cout << "done all parts, saving output to "
               << outFileName << std::endl;
