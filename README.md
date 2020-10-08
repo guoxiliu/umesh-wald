@@ -106,7 +106,7 @@ Example:
     ./umeshExtractIsoSurface /space/lander-small-rho-9000.umesh \
 	--obj iso.obj --iso 1.5
 	
-should produce an obj file that looks like this (rendered w/ ospray):
+should produce an obj file that looks like this (ca 19M tris, rendered w/ ospray):
 
 [docs/png/lander-small-iso-1.5.png]
 
@@ -121,7 +121,7 @@ should produce an obj file that looks like this (rendered w/ ospray):
 
 # Importers
 
-UMesh can load
+UMesh can load the following formats:
 
 ## umesh binary format (".umesh")
 
@@ -142,7 +142,23 @@ cells, and merge them into a single unstructured mesh umesh file.
 	--scalars /space/fun3d/small/10000unsteadyiters/dAgpu0145_Fa_volume_data. \
 	-o /space/lander-small-rho-9000.umesh  -ts 9000 -var rho
 
-Should import the "small" (148M vertex) version of the lander, time step 9000, and variable rho.
+This should Should import the "small" (148M vertex) version of the lander, time step 9000, and variable rho. This should result in a file with the following info
+
+```
+wald@trinity:~/Projects/umesh/bin$ ./umeshInfo /space/lander-small-rho-9000.umesh 
+loading umesh from /space/lander-small-rho-9000.umesh
+UMesh info:
+#verts : 144.89M
+#tris  : 0
+#quads : 0
+#tets  : 766.42M
+#pyrs  : 47.45K
+#wedges: 31.99M
+#hexes : 0
+bounds : [(-300,-100,-100):(300,100,100)]
+values : [0:96.9123]
+```
+
 
 ## OFF
 

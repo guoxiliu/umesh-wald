@@ -27,9 +27,6 @@ ispc
 *.dvi
 *.lbl
 *.log
-paper/pointQueries/rtxPointQueries.pdf
-paper/pointQueries/rtxPointQueries-compressed.pdf
-*.swp
 *.out
 Session.vim
 .idea
