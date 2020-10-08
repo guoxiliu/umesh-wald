@@ -320,11 +320,6 @@ namespace umesh {
         fclose(metaFile);
       }
 
-      PRINT(prettyNumber(meta.tets));
-      PRINT(prettyNumber(meta.pyrs));
-      PRINT(prettyNumber(meta.wedges));
-      PRINT(prettyNumber(meta.hexes));
-
       UMesh::SP mesh = io::UGrid32Loader::load(meshFileName);
 
       std::string fieldName;
@@ -343,7 +338,6 @@ namespace umesh {
       }
       std::cout << std::endl;
 
-#if 0        
       std::cout << "merging in " << prettyNumber(meta.pyrs) << " out of " << prettyNumber(mesh->pyrs.size()) << " pyrs" << std::endl;
       for (int i=0;i<meta.pyrs;i++) {
         auto in = mesh->pyrs[i];
@@ -387,14 +381,8 @@ namespace umesh {
         translate((uint32_t*)&out,(const uint32_t*)&in,4,mesh->vertices,fileID);
         merged->quads.push_back(out);
       }
-#endif
       
-      std::cout << " >>> done part " << fileID << std::endl;
-      PRINT(prettyNumber(merged->vertices.size()));
-      PRINT(prettyNumber(merged->tets.size()));
-      PRINT(prettyNumber(merged->pyrs.size()));
-      PRINT(prettyNumber(merged->wedges.size()));
-      PRINT(prettyNumber(merged->hexes.size()));
+      std::cout << " >>> done part " << fileID << ", got " << merged->toString(false) << std::endl;
       return true;
     }
     

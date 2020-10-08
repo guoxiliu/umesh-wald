@@ -514,7 +514,7 @@ namespace umesh {
     
     std::cout << "#umesh.iso: pushing " << prettyNumber(in->tets.size())
               << " tets" << std::endl;
-    owl::common::serial_for_blocked
+    owl::common::parallel_for_blocked
       (0,in->tets.size(),1024,
        [&](size_t begin, size_t end){
         doIsoSurfaceTets(fatVertices,mutex,in,begin,end,isoValue);
@@ -522,7 +522,7 @@ namespace umesh {
 
     std::cout << "#umesh.iso: pushing " << prettyNumber(in->pyrs.size())
               << " pyramids" << std::endl;
-    owl::common::serial_for_blocked
+    owl::common::parallel_for_blocked
       (0,in->pyrs.size(),1024,
        [&](size_t begin, size_t end){
         doIsoSurfacePyrs(fatVertices,mutex,in,begin,end,isoValue);
@@ -530,7 +530,7 @@ namespace umesh {
 
     std::cout << "#umesh.iso: pushing " << prettyNumber(in->wedges.size())
               << " wedges" << std::endl;
-    owl::common::serial_for_blocked
+    owl::common::parallel_for_blocked
       (0,in->wedges.size(),1024,
        [&](size_t begin, size_t end){
         doIsoSurfaceWedges(fatVertices,mutex,in,begin,end,isoValue);
@@ -538,7 +538,7 @@ namespace umesh {
 
     std::cout << "#umesh.iso: pushing " << prettyNumber(in->hexes.size())
               << " hexes" << std::endl;
-    owl::common::serial_for_blocked
+    owl::common::parallel_for_blocked
       (0,in->hexes.size(),1024,
        [&](size_t begin, size_t end){
         doIsoSurfaceHexes(fatVertices,mutex,in,begin,end,isoValue);
@@ -549,13 +549,13 @@ namespace umesh {
     std::cout << "#umesh.iso: creating vertex/index arrays ..." << std::endl;
     for (int i=0;i<numFatVertices;i++)
       fatVertices[i].idx = i;
-#if 1
+#if 0
     for (int i=0;i<numFatVertices;i++)
       out->vertices.push_back(fatVertices[i].pos);
     for (int i=0;i<numFatVertices/3;i++)
       out->triangles.push_back(3*i+vec3i(0,1,2));
 #else
-    if (0 && OWL_HAVE_TBB) {
+    if (1 && OWL_HAVE_TBB) {
       tbb::parallel_sort(fatVertices.begin(),fatVertices.end(),FatVertexCompare());
     } else {
       std::sort(fatVertices.begin(),fatVertices.end(),FatVertexCompare());
