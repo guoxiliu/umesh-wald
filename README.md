@@ -84,6 +84,23 @@ Notes:
   owned cells, but with the same vertex array af if also the ghost
   cells had been tessellated, too.
 
+## Extract Iso-Surface
+
+Runs a (parallel) iso-surface extration algorithm, and constucts a new
+umesh containing only triangles for the chosen ios-surface value.
+
+Notes: 
+
+- Algorithm is parallelized, and pretty fast, but may use quite some
+  memory during extraction.
+
+- for the CLI tool you can choose whether to emit an OBJ file with the
+  surface, of a ".umesh" file with a umesh that contains only triangles.
+  
+- algorithm can hnadle both tet and general unstructured meshes.
+
+Also available programmatically via `umesh::extractIsoSurface(mesh, isoValue)`.
+
 ## Compute Shared-Face Connectivity
 
 ## Compute Outer Shell
