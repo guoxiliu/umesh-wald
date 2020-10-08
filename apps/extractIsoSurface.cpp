@@ -16,7 +16,7 @@
 
 #include "umesh/io/ugrid32.h"
 #include "umesh/io/UMesh.h"
-#include "umesh/tetrahedralize.h"
+#include "umesh/extractIsoSurface.h"
 
 namespace umesh {
 
@@ -25,25 +25,28 @@ namespace umesh {
     if (error != "")
       std::cerr << "Error : " << error  << "\n\n";
 
-    std::cout << "Usage: ./umeshTetrahedralize <in.umesh> -o <out.umesh> [--skip-actual-tets]" << std::endl;;
+    std::cout << "Usage: ./umeshExtractIsoSurface <in.umesh> -iso scalarValue (-o <out.umesh> | --obj file.obj)" << std::endl;;
     exit (error != "");
   };
   
   extern "C" int main(int ac, char **av)
   {
+    float isoValue = std::numeric_limits<float>::infinity();
     std::string inFileName;
     std::string outFileName;
+    std::string objFileName;
     /*! if enabled, we'll only save the tets that _we_ created, not
         those that were in the file initially */
-    bool skipActualTets = false;
     for (int i=1;i<ac;i++) {
       const std::string arg = av[i];
       if (arg == "-h")
         usage();
       else if (arg == "-o")
         outFileName = av[++i];
-      else if (arg == "--skip-actual-tets")
-        skipActualTets = true;
+      else if (arg == "-iso" || arg == "--iso-value" || arg == "--iso")
+        isoValue = std::stof(av[++i]);
+      else if (arg == "--obj")
+        objFileName = av[++i];
       else if (arg[0] != '-')
         inFileName = arg;
       else
@@ -51,13 +54,16 @@ namespace umesh {
     }
     
     if (inFileName == "") usage("no input file specified");
-    if (outFileName == "") usage("no output file specified");
+    if (outFileName == "" && objFileName == "") usage("neither obj nor umesh output file specified");
+    
+    if (isoValue == std::numeric_limits<float>::infinity())
+      usage("no iso-value specified");
     
     std::cout << "loading umesh from " << inFileName << std::endl;
-    UMesh::SP in = io::loadBinaryUMesh(inFileName);
+    UMesh::SP in = UMesh::loadFrom(inFileName);
     
     std::cout << "done loading, found " << in->toString()
-              << " ... now tetrahedralizing" << std::endl;
+              << " ... now extracting iso-surface" << std::endl;
     if (in->pyrs.empty() &&
         in->wedges.empty() &&
         in->hexes.empty()) {
@@ -68,14 +74,23 @@ namespace umesh {
       std::cout << OWL_TERMINAL_DEFAULT << std::endl;
     }
     
-    UMesh::SP out = tetrahedralize(in);
-    std::cout << "done all prims, saving output to " << outFileName << std::endl;
-    // PRINT(prettyNumber(out->tets.size()));
-    // PRINT(prettyNumber(out->pyrs.size()));
-    // PRINT(prettyNumber(out->wedges.size()));
-    // PRINT(prettyNumber(out->hexes.size()));
-    
-    io::saveBinaryUMesh(outFileName,out);
+    UMesh::SP result = extractIsoSurface(in,isoValue);
+    std::cout << "done extracting isovalue, found " << result->toString() << std::endl;
+    if (outFileName != "") {
+      std::cout << "saving to " << outFileName << std::endl;
+      result->saveTo(outFileName);
+    }
+    if (objFileName != "") {
+      std::cout << "writing in OBJ format to " << objFileName << std::endl;
+      std::cout << OWL_TERMINAL_RED << "# WARNING - this can take a while!"
+                << OWL_TERMINAL_DEFAULT << std::endl;
+      std::ofstream out(objFileName);
+      for (auto v : result->vertices)
+        out << v.x << " " << v.y << " " << v.z << std::endl;
+      for (auto t : result->triangles)
+        out << (t.x+1) << " " << (t.y+1) << " " << (t.z+1) << std::endl;
+    }
+      
     std::cout << "done all ..." << std::endl;
     
   }

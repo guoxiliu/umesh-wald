@@ -52,6 +52,10 @@ add_library(umesh
 
   # tetrahedralize a general umesh into a tet-mesh
   tetrahedralize.cpp
+
+  # run marching cubes/marching tets algorithm on a umesh, produce a
+  # new umesh with only triangles
+  extractIsoSurface.cpp
   )
 
 target_link_libraries(umesh

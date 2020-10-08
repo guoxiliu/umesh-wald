@@ -257,13 +257,19 @@ namespace umesh {
 
     if (compact) {
       ss << "Umesh(";
-      ss << "#tris=" << prettyNumber(triangles.size());
-      ss << ",#quads=" << prettyNumber(quads.size());
-      ss << ",#tets=" << prettyNumber(tets.size());
-      ss << ",#pyrs=" << prettyNumber(pyrs.size());
-      ss << ",#wedges=" << prettyNumber(wedges.size());
-      ss << ",#hexes=" << prettyNumber(hexes.size());
-      ss << ",#verts=" << prettyNumber(vertices.size());
+      ss << "#verts=" << prettyNumber(vertices.size());
+      if (!triangles.empty())
+        ss << ",#tris=" << prettyNumber(triangles.size());
+      if (!quads.empty())
+        ss << ",#quads=" << prettyNumber(quads.size());
+      if (!tets.empty())
+        ss << ",#tets=" << prettyNumber(tets.size());
+      if (!pyrs.empty())
+        ss << ",#pyrs=" << prettyNumber(pyrs.size());
+      if (!wedges.empty())
+        ss << ",#wedges=" << prettyNumber(wedges.size());
+      if (!hexes.empty())
+        ss << ",#hexes=" << prettyNumber(hexes.size());
       if (perVertex) {
         ss << ",scalars=yes(name='" << perVertex->name << "')";
       } else {
