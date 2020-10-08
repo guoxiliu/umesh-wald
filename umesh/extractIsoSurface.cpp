@@ -520,7 +520,7 @@ namespace umesh {
     const int numFatVertices = fatVertices.size();
     for (int i=0;i<numFatVertices;i++)
       fatVertices[i].idx = i;
-    std::sort(fatVertices.begin(),fatVertices.begin(),FatVertexCompare());
+    std::sort(fatVertices.begin(),fatVertices.end(),FatVertexCompare());
 
     int numUniqueVertices = 0;
     for (int i=0;i<numFatVertices;i++)
@@ -544,10 +544,6 @@ namespace umesh {
       ((int*)out->triangles.data())[vtx.idx] = uniqueVertexID;
     }
 
-    std::vector<int> vtxIDs(numFatVertices);
-    for (int i=0;i<numFatVertices;i++)
-      vtxIDs[i] = i;
-    
     size_t numTriangles = out->vertices.size()/3;
     out->triangles.resize(numTriangles);
     return out;
