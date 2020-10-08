@@ -24,6 +24,21 @@ namespace umesh {
   namespace io {
 
     template<typename T>
+    inline bool safe_to_copy_binary()
+    { return std::is_trivially_copyable<T>::value; }
+
+    template<> inline bool safe_to_copy_binary<vec3i>() { return true; }
+    template<> inline bool safe_to_copy_binary<vec3f>() { return true; }
+    template<> inline bool safe_to_copy_binary<vec4i>() { return true; }
+    template<> inline bool safe_to_copy_binary<vec4f>() { return true; }
+    // template<> inline bool safe_to_copy_binary<Triangle>() { return true; }
+    // template<> inline bool safe_to_copy_binary<Quad>() { return true; }
+    // template<> inline bool safe_to_copy_binary<Tet>() { return true; }
+    template<> inline bool safe_to_copy_binary<Pyr>() { return true; }
+    template<> inline bool safe_to_copy_binary<Wedge>() { return true; }
+    template<> inline bool safe_to_copy_binary<Hex>() { return true; }
+
+    template<typename T>
     inline void readElement(std::istream &in, T &t)
     {
       assert(in.good());
@@ -50,8 +65,11 @@ namespace umesh {
       size_t N;
       readElement(in,N);
       t.resize(N);
-      for (size_t i=0;i<N;i++)
-        readElement(in,t[i]);
+      if (safe_to_copy_binary<T>())
+        in.read((char*)t.data(),N*sizeof(t[0]));
+      else
+         for (size_t i=0;i<N;i++)
+           readElement(in,t[i]);
     }
 
     template<typename T>
@@ -64,8 +82,11 @@ namespace umesh {
     template<typename T>
     void writeData(std::ostream &out, const T *t, size_t N)
     {
-      for (size_t i=0;i<N;i++)
-        write(out,t[i]);
+      if (safe_to_copy_binary<T>())
+        out.write((char*)t,N*sizeof(t[0]));
+      else
+        for (size_t i=0;i<N;i++)
+          write(out,t[i]);
       assert(out.good());
     }
     
@@ -74,8 +95,11 @@ namespace umesh {
     {
       size_t N = vt.size();
       writeElement(out,N);
-      for (auto &v : vt)
-        writeElement(out,v);
+      if (safe_to_copy_binary<T>())
+        out.write((char*)vt.data(),N*sizeof(vt[0]));
+      else
+        for (auto &v : vt)
+          writeElement(out,v);
       assert(out.good());
     }
 
