@@ -49,6 +49,8 @@ namespace umesh {
   };
 
   typedef vec4i Tet;
+  typedef vec3i Triangle;
+  typedef vec4i Quad;
     
   struct Wedge {
     inline Wedge() {}
@@ -96,10 +98,12 @@ namespace umesh {
     using VTK format for the vertex index ordering (see
     windingorder.jpg) */
   struct UMesh {
-    using Wedge = umesh::Wedge;
-    using Hex = umesh::Hex;
-    using Tet = umesh::Tet;
-    using Pyr = umesh::Pyr;
+    using Triangle = umesh::Triangle;
+    using Quad     = umesh::Quad;
+    using Tet      = umesh::Tet;
+    using Pyr      = umesh::Pyr;
+    using Wedge    = umesh::Wedge;
+    using Hex      = umesh::Hex;
     
     typedef std::shared_ptr<UMesh> SP;
 
@@ -328,8 +332,8 @@ namespace umesh {
     // -------------------------------------------------------
     // surface elements:
     // -------------------------------------------------------
-    std::vector<vec3i> triangles;
-    std::vector<vec4i> quads;
+    std::vector<Triangle> triangles;
+    std::vector<Quad>     quads;
 
     // -------------------------------------------------------
     // volume elements:
