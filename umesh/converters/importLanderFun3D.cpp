@@ -43,7 +43,6 @@ namespace umesh {
       in = std::ifstream(fileName,std::ios::binary);
       uint32_t magicNumber = io::readElement<uint32_t>(in);
 
-      PING; 
       std::string versionString = io::readString(in);
       std::cout << "Found fun3d file with version string "
                 << versionString << std::endl;
@@ -52,34 +51,23 @@ namespace umesh {
       numScalars = io::readElement<uint32_t>(in);
       
       variableNames.resize(io::readElement<uint32_t>(in));
-      PRINT(variableNames.size());
       for (auto &var : variableNames) {
         var = io::readString(in);
-        PRINT(var);
       }
 
-      PING; 
       globalVertexIDs.resize(numScalars);
       io::readArray(in,globalVertexIDs.data(),globalVertexIDs.size());
 
-      for (int i=0;i<10;i++)
-        PRINT(globalVertexIDs[i]);
-      
-      PING;
       size_t dataBegin = in.tellg();
       for (int tsNo=0;;tsNo++) {
-        PING;
         try {
           uint32_t timeStepID = io::readElement<uint32_t>(in);
-          PRINT(timeStepID);
           timeStepOffsets[timeStepID] = in.tellg();
-          PRINT(timeStepOffsets[timeStepID]);
           in.seekg(dataBegin
                    +tsNo*(variableNames.size()*globalVertexIDs.size()*sizeof(float)
                           +sizeof(timeStepID)),
                    std::ios::beg);
         } catch (std::exception e) {
-          PRINT(e.what());
           in.clear(in.goodbit);
           break;
         };
@@ -102,18 +90,13 @@ namespace umesh {
       for (int i=0;;i++) {
         if (i >= variableNames.size())
           throw std::runtime_error("couldn't find requested variable");
-        PRINT(variableNames[i]);
-        PRINT(desiredVariable);
         if (variableNames[i] == desiredVariable)
           break;
         offset += scalars.size()*sizeof(float);
       }
 
-      PRINT(offset);
       in.seekg(offset,std::ios::beg);
-      PING; PRINT(scalars.size());
       io::readArray(in,scalars.data(),scalars.size());
-      PING;
     }
     
     size_t numScalars;
