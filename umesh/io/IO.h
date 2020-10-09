@@ -123,5 +123,12 @@ namespace umesh {
       writeArray(out,s.data(),size);
     }
     
+    inline std::string readString(std::istream &in)
+    {
+      std::string s;
+      readString(in,s);
+      return s;
+    }
+
   } // ::tetty::io
 } // ::tetty

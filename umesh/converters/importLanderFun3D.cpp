@@ -35,6 +35,78 @@ namespace umesh {
   std::string variable = "";
 
 
+  /*! class that loads a fun3d "volume_data" file */
+  struct Fun3DScalarsReader {
+
+    Fun3DScalarsReader(const std::string &fileName)
+    {
+      in(fileName,std::ios::binary);
+      uint32_t magicNumber = io::readElement<uint32_t>(in);
+
+      std::string versionString = io::readString(in);
+      std::cout << "Found fun3d file with version string "
+                << versionString << std::endl;
+      
+      uint32_t ignore = io::readElement<uint32_t>(in);
+      numScalars ignore = io::readElement<uint32_t>(in);
+      variableNames.resize(io::readElement<uint32_t>(in));
+      for (auto &var : variableNames)
+        var = io::readString(in);
+
+      globalVertexID.resize(numScalars);
+      io::readArray(in,globalVertexID.data(),globalVertexID.size());
+
+      while (1) {
+        uint32_t timeStepID = io::readElement<uint32_t>(in);
+        if (io.eof() || !io.good()) continue;
+        timeStepOffsets.push_back({timeStepID,io.tellg()});
+
+        io.seekg(io.tellg()
+                 +variables.size()*globalVertexIDs.size()*sizeof(float)
+                 -sizeof(timeStepID),
+                 std::ios::begin);
+      }
+    }
+
+    void readTimeStep(std::vector<float> &scalars,
+                      const std::string &desiredVariable,
+                      int desiredTimeStep)
+    {
+      size_t offset = 0;
+      scalars.resize(globalVertexIDs.size());
+      
+      /* offsets based on _blocks_ of time steps (one per variable) */
+      for (int i=0;;i++) {
+        if (i >= timeStepOffsets.size())
+          throw std::runtime_error("could not find requested time step!");
+        if (timeStepOffsets[i].first != desiredTimeStep)
+          continue;
+        offset = timeStepOffsets[i].first;
+        break;
+      }
+
+      /* offsets based on which variable */
+      for (int i=0;;i++) {
+        if (i >= variableNames.size())
+          throw std::runtime_error("couldn't find requested variable");
+        if (variableNames[i] == desiredVariable)
+          break;
+        offset += scalars.size()*sizeof(float);
+      }
+
+      in.seekg(offset);
+      io::readArray(in,scalars.data(),scalars.size());
+    }
+    
+    size_t numScalars;
+    std::ifstream in;
+    std::vector<std::string> variableNames;
+    std::vector<size_t>      globalVertexID;
+    /*! .first is time step ID, .second is the offset in the file */
+    std::vector<int,size_t>  timeStepOffsets;
+    size_t sizeOfTimeStep;
+  };
+    
   void getInfo(const std::string &scalarsFileName,
                std::vector<std::string> &variables,
                std::vector<int> &timeSteps)
@@ -46,8 +118,7 @@ namespace umesh {
 
     MergedMesh() 
       : merged(std::make_shared<UMesh>())
-    {
-    }
+    {}
 
     void loadScalars(UMesh::SP mesh, int fileID,
                      std::string &fieldName,
