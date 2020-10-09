@@ -324,6 +324,8 @@ namespace umesh {
       else
         usage("unknown cmdline arg "+arg);
     }
+    if (path == "") usage("no input path specified");
+    if (outFileName == "") usage("no output filename specified");
 
     if (timeStep < 0 || variable == "") {
       std::string firstFileName = scalarsPath+std::to_string(begin);
@@ -341,8 +343,6 @@ namespace umesh {
     }
     
     MergedMesh mesh;
-    if (path == "") usage("no input path specified");
-    if (outFileName == "") usage("no output filename specified");
     
     for (int i=begin;i<(begin+num);i++)
       if (!mesh.addPart(i))
