@@ -31,9 +31,6 @@ namespace umesh {
     template<> inline bool safe_to_copy_binary<vec3f>() { return true; }
     template<> inline bool safe_to_copy_binary<vec4i>() { return true; }
     template<> inline bool safe_to_copy_binary<vec4f>() { return true; }
-    // template<> inline bool safe_to_copy_binary<Triangle>() { return true; }
-    // template<> inline bool safe_to_copy_binary<Quad>() { return true; }
-    // template<> inline bool safe_to_copy_binary<Tet>() { return true; }
     template<> inline bool safe_to_copy_binary<Pyr>() { return true; }
     template<> inline bool safe_to_copy_binary<Wedge>() { return true; }
     template<> inline bool safe_to_copy_binary<Hex>() { return true; }
@@ -126,24 +123,5 @@ namespace umesh {
       writeArray(out,s.data(),size);
     }
     
-                           
-    
-    struct Exception : public std::exception {
-    };
-
-    struct CouldNotOpenException : public io::Exception {
-      CouldNotOpenException(const std::string &fileName)
-        : fileName(fileName)
-      {}
-
-      const std::string fileName;
-    };
-
-    struct ReadErrorException : public io::Exception {
-    };
-
-    struct WriteErrorException : public io::Exception {
-    };
-
   } // ::tetty::io
 } // ::tetty
