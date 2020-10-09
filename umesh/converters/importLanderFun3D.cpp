@@ -40,7 +40,7 @@ namespace umesh {
 
     Fun3DScalarsReader(const std::string &fileName)
     {
-      in(fileName,std::ios::binary);
+      in = std::ifstream(fileName,std::ios::binary);
       uint32_t magicNumber = io::readElement<uint32_t>(in);
 
       std::string versionString = io::readString(in);
@@ -48,23 +48,22 @@ namespace umesh {
                 << versionString << std::endl;
       
       uint32_t ignore = io::readElement<uint32_t>(in);
-      numScalars ignore = io::readElement<uint32_t>(in);
       variableNames.resize(io::readElement<uint32_t>(in));
       for (auto &var : variableNames)
         var = io::readString(in);
 
-      globalVertexID.resize(numScalars);
-      io::readArray(in,globalVertexID.data(),globalVertexID.size());
+      globalVertexIDs.resize(numScalars);
+      io::readArray(in,globalVertexIDs.data(),globalVertexIDs.size());
 
       while (1) {
         uint32_t timeStepID = io::readElement<uint32_t>(in);
-        if (io.eof() || !io.good()) continue;
-        timeStepOffsets.push_back({timeStepID,io.tellg()});
+        if (in.eof() || !in.good()) continue;
+        timeStepOffsets[timeStepID] = in.tellg();
 
-        io.seekg(io.tellg()
-                 +variables.size()*globalVertexIDs.size()*sizeof(float)
+        in.seekg((size_t)in.tellg()
+                 +variableNames.size()*globalVertexIDs.size()*sizeof(float)
                  -sizeof(timeStepID),
-                 std::ios::begin);
+                 std::ios::beg);
       }
     }
 
@@ -72,18 +71,13 @@ namespace umesh {
                       const std::string &desiredVariable,
                       int desiredTimeStep)
     {
-      size_t offset = 0;
       scalars.resize(globalVertexIDs.size());
       
       /* offsets based on _blocks_ of time steps (one per variable) */
-      for (int i=0;;i++) {
-        if (i >= timeStepOffsets.size())
-          throw std::runtime_error("could not find requested time step!");
-        if (timeStepOffsets[i].first != desiredTimeStep)
-          continue;
-        offset = timeStepOffsets[i].first;
-        break;
-      }
+      auto it = timeStepOffsets.find(desiredTimeStep);
+      if (it == timeStepOffsets.end())
+        throw std::runtime_error("could not find requested time step!");
+      size_t offset = it->second;
 
       /* offsets based on which variable */
       for (int i=0;;i++) {
@@ -93,7 +87,7 @@ namespace umesh {
           break;
         offset += scalars.size()*sizeof(float);
       }
-
+      
       in.seekg(offset);
       io::readArray(in,scalars.data(),scalars.size());
     }
@@ -101,9 +95,9 @@ namespace umesh {
     size_t numScalars;
     std::ifstream in;
     std::vector<std::string> variableNames;
-    std::vector<size_t>      globalVertexID;
+    std::vector<size_t>      globalVertexIDs;
     /*! .first is time step ID, .second is the offset in the file */
-    std::vector<int,size_t>  timeStepOffsets;
+    std::map<int,size_t>  timeStepOffsets;
     size_t sizeOfTimeStep;
   };
     
@@ -111,7 +105,11 @@ namespace umesh {
                std::vector<std::string> &variables,
                std::vector<int> &timeSteps)
   {
-    throw std::runtime_error("not implemented");
+    Fun3DScalarsReader scalarReader(scalarsFileName);
+    variables = scalarReader.variableNames;
+    timeSteps.clear();
+    for (auto it : scalarReader.timeStepOffsets)
+      timeSteps.push_back(it.first);
   }
   
   struct MergedMesh {
@@ -135,24 +133,28 @@ namespace umesh {
       std::cout << "reading time step " << timeStep
                 << " from " << scalarsFileName << std::endl;
 
-      std::ifstream file(scalarsFileName,std::ios::binary);
-      if (!file.good())
-        throw std::runtime_error("error opening scalars file....");
+      Fun3DScalarsReader reader(scalarsFileName);
+      reader.readTimeStep(scalars,fieldName,timeStep);
+      globalVertexIDs = reader.globalVertexIDs;
       
-      scalars.resize(mesh->vertices.size());
-      size_t numBytes = sizeof(float)*mesh->vertices.size();
+    //   std::ifstream file(scalarsFileName,std::ios::binary);
+    //   if (!file.good())
+    //     throw std::runtime_error("error opening scalars file....");
+      
+    //   scalars.resize(mesh->vertices.size());
+    //   size_t numBytes = sizeof(float)*mesh->vertices.size();
 
-      file.seekg(timeStep*numBytes,
-                 timeStep<0
-                 ? std::ios::end
-                 : std::ios::beg);
+    //   file.seekg(timeStep*numBytes,
+    //              timeStep<0
+    //              ? std::ios::end
+    //              : std::ios::beg);
       
-      file.read((char*)scalars.data(),numBytes);
-      if (!file) std::cout << "FILE INVALID" << std::endl;
-      if (!file.good())
-        throw std::runtime_error("error reading scalars....");
-      std::cout << "read " << prettyNumber(scalars.size())
-                << " scalars (first one is " << scalars[0] << ")" << std::endl;
+    //   file.read((char*)scalars.data(),numBytes);
+    //   if (!file) std::cout << "FILE INVALID" << std::endl;
+    //   if (!file.good())
+    //     throw std::runtime_error("error reading scalars....");
+    //   std::cout << "read " << prettyNumber(scalars.size())
+    //             << " scalars (first one is " << scalars[0] << ")" << std::endl;
     }
       
     bool addPart(int fileID)
@@ -160,8 +162,6 @@ namespace umesh {
       std::cout << "----------- part " << fileID << " -----------" << std::endl;
       std::string metaFileName = path + "ta."+std::to_string(fileID);
       std::string meshFileName = path + "sh.lb4."+std::to_string(fileID);
-      // std::string metaFileName = path + "meta."+std::to_string(fileID);
-      // std::string meshFileName = path + "mesh.lb4."+std::to_string(fileID);
       std::cout << "reading from " << meshFileName << std::endl;
       std::cout << "     ... and " << metaFileName << std::endl;
       struct {
