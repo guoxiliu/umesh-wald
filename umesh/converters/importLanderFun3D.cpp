@@ -69,16 +69,20 @@ namespace umesh {
       size_t dataBegin = in.tellg();
       for (int tsNo=0;;tsNo++) {
         PING;
-        if (in.eof() || !in.good()) break;
-        uint32_t timeStepID = io::readElement<uint32_t>(in);
-        PRINT(timeStepID);
-        if (in.eof() || !in.good()) break;
-        timeStepOffsets[timeStepID] = in.tellg();
-
-        in.seekg(dataBegin
-                 +tsNo*(variableNames.size()*globalVertexIDs.size()*sizeof(float)
-                        +sizeof(timeStepID)),
-                 std::ios::beg);
+        try {
+          uint32_t timeStepID = io::readElement<uint32_t>(in);
+          PRINT(timeStepID);
+          timeStepOffsets[timeStepID] = in.tellg();
+          PRINT(timeStepOffsets[timeStepID]);
+          in.seekg(dataBegin
+                   +tsNo*(variableNames.size()*globalVertexIDs.size()*sizeof(float)
+                          +sizeof(timeStepID)),
+                   std::ios::beg);
+        } catch (std::exception e) {
+          PRINT(e.what());
+          in.clear(in.goodbit);
+          break;
+        };
       }
     }
 
@@ -98,13 +102,18 @@ namespace umesh {
       for (int i=0;;i++) {
         if (i >= variableNames.size())
           throw std::runtime_error("couldn't find requested variable");
+        PRINT(variableNames[i]);
+        PRINT(desiredVariable);
         if (variableNames[i] == desiredVariable)
           break;
         offset += scalars.size()*sizeof(float);
       }
-      
-      in.seekg(offset);
+
+      PRINT(offset);
+      in.seekg(offset,std::ios::beg);
+      PING; PRINT(scalars.size());
       io::readArray(in,scalars.data(),scalars.size());
+      PING;
     }
     
     size_t numScalars;
@@ -134,7 +143,6 @@ namespace umesh {
     {}
 
     void loadScalars(UMesh::SP mesh, int fileID,
-                     std::string &fieldName,
                      /*! where each one of the given "volume_data" and
                          "mesh" files' vertices are supposed to go in
                          the global, reconstituted file */
@@ -149,7 +157,7 @@ namespace umesh {
                 << " from " << scalarsFileName << std::endl;
 
       Fun3DScalarsReader reader(scalarsFileName);
-      reader.readTimeStep(scalars,fieldName,timeStep);
+      reader.readTimeStep(scalars,variable,timeStep);
       globalVertexIDs = reader.globalVertexIDs;
       
     //   std::ifstream file(scalarsFileName,std::ios::binary);
@@ -198,8 +206,7 @@ namespace umesh {
 
       UMesh::SP mesh = io::UGrid32Loader::load(meshFileName);
 
-      std::string fieldName;
-      loadScalars(mesh,fileID,fieldName,globalVertexIDs);
+      loadScalars(mesh,fileID,globalVertexIDs);
 
       size_t requiredVertexArraySize = merged->vertices.size();
       for (auto globalID : globalVertexIDs)
