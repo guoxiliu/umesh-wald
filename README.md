@@ -1,4 +1,4 @@
-# umesh: A Little Library for Managing and Manipulating Unstructured Mesh Data
+# umesh: A Low-dependency Library for Managing and Manipulating Unstructured Mesh Data
 
 # Motivation
 
@@ -101,6 +101,15 @@ Notes:
 
 Also available programmatically via `umesh::extractIsoSurface(mesh, isoValue)`.
 
+Example:
+
+    ./umeshExtractIsoSurface /space/lander-small-rho-9000.umesh \
+	--obj iso.obj --iso 0.2
+	
+should produce an obj file that looks like this (ca 19M tris, rendered w/ ospray):
+
+![pic of iso-surface](docs/png/lander-small-iso-0.2.jpg)
+
 ## Compute Shared-Face Connectivity
 
 ## Compute Outer Shell
@@ -112,17 +121,46 @@ Also available programmatically via `umesh::extractIsoSurface(mesh, isoValue)`.
 
 # Importers
 
-UMesh can load
+UMesh can load the following formats:
 
-- umesh binary format (".umesh")
+## umesh binary format (".umesh")
 
-- the ugrid64 and ugrid32 formats used by various versions of NASA's
-  fun3d library.
+our own binary format
 
-- importer tools to download, and import the different files from the
-  "NASA Mars Lander Retropulsion Study" data release, strip ghost
-  cells, and merge them into a single unstructured mesh umesh file.
+## ugrid32/ugrid64
 
-- not recently tested importers for VTK/VTU files, OFF files, and for
-  the unstructured meshes dumped by our eax
+the ugrid64 and ugrid32 formats used by various versions of NASA's
+fun3d library.
+
+## Nasa Fun3D Mars Lander importer
+
+importer tools to download, and import the different files from the
+"NASA Mars Lander Retropulsion Study" data release, strip ghost
+cells, and merge them into a single unstructured mesh umesh file.
+
+    ./umeshImportLanderFun3D /space/fun3d/small/geometry/dAgpu0145_Fa_me \
+	--scalars /space/fun3d/small/10000unsteadyiters/dAgpu0145_Fa_volume_data. \
+	-o /space/lander-small-rho-9000.umesh  -ts 9000 -var rho
+
+This should Should import the "small" (148M vertex) version of the lander, time step 9000, and variable rho. This should result in a file with the following info
+
+```
+wald@trinity:~/Projects/umesh/bin$ ./umeshInfo /space/lander-small-rho-9000.umesh 
+loading umesh from /space/lander-small-rho-9000.umesh
+UMesh info:
+#verts : 144.89M
+#tris  : 0
+#quads : 0
+#tets  : 766.42M
+#pyrs  : 47.45K
+#wedges: 31.99M
+#hexes : 0
+bounds : [(-300,-100,-100):(300,100,100)]
+values : [0:96.9123]
+```
+
+
+## OFF
+
+pretty old, OBJ-like format (most famously, the jets dataset)
 
