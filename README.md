@@ -1,4 +1,4 @@
-# umesh: A Little Library for Managing and Manipulating Unstructured Mesh Data
+# umesh: A Low-dependency Library for Managing and Manipulating Unstructured Mesh Data
 
 # Motivation
 

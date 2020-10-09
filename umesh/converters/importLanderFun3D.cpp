@@ -171,13 +171,10 @@ namespace umesh {
     size_t size1 = sizeof(int32_t) +
       h.n_nodes * h.variables.size() * sizeof(float);
     size_t i = 0;
-    PRINT(ts0);
-    PRINT(size1);
     for ( ; ; i++) {
       is.seekg(h.size + i * size1);
       int32_t tsi;
       is.read((char*) &tsi, sizeof(int32_t));
-      PRINT(tsi);
       if (is.eof())
         throw std::runtime_error("time step not found: " + std::to_string(ts));
       if (tsi == ts)
@@ -266,7 +263,6 @@ namespace umesh {
       local_to_global = header.local_to_global;
       
       fieldName = variable;
-      PRINT(fieldName);
       int time_step = timeStep;
       
       std::vector<float> &data = scalars;
@@ -330,7 +326,6 @@ namespace umesh {
       size_t requiredVertexArraySize = merged->vertices.size();
       for (auto globalID : local_to_global)
         requiredVertexArraySize = std::max(requiredVertexArraySize,size_t(globalID)+1);
-      PRINT(requiredVertexArraySize);
       if (!merged->perVertex) {
         merged->perVertex = std::make_shared<Attribute>();
         merged->perVertex->name = variable;
@@ -346,7 +341,7 @@ namespace umesh {
       std::cout << "merging in " << prettyNumber(meta.tets) << " out of " << prettyNumber(mesh->tets.size()) << " tets" << std::endl;
       for (int i=0;i<meta.tets;i++) {
         auto in = mesh->tets[i];
-        if (!(i % 100000)) { std::cout << "." << std::flush; };//PRINT(i); PRINT(in); }
+        if (!(i % 100000)) { std::cout << "." << std::flush; };
         UMesh::Tet out;
         translate((uint32_t*)&out,(const uint32_t*)&in,4,mesh->vertices,fileID);
         merged->tets.push_back(out);
