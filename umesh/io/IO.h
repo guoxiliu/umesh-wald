@@ -73,20 +73,20 @@ namespace umesh {
     }
 
     template<typename T>
-    void writeElement(std::ostream &out, const T &t)
+    inline void writeElement(std::ostream &out, const T &t)
     {
       out.write((char*)&t,sizeof(t));
       assert(out.good());
     }
 
     template<typename T>
-    void writeData(std::ostream &out, const T *t, size_t N)
+    inline void writeArray(std::ostream &out, const T *t, size_t N)
     {
       if (safe_to_copy_binary<T>())
         out.write((char*)t,N*sizeof(t[0]));
       else
         for (size_t i=0;i<N;i++)
-          write(out,t[i]);
+          writeElement(out,t[i]);
       assert(out.good());
     }
     
@@ -111,6 +111,22 @@ namespace umesh {
       return t;
     }
     
+    inline void readString(std::istream &in, std::string &s)
+    {
+      int size;
+      readElement(in,size);
+      s = std::string(size,' ');
+      readArray(in,s.data(),size);
+    }
+    
+    inline void writeString(std::ostream &out, const std::string &s)
+    {
+      int size = s.size();
+      writeElement(out,size);
+      writeArray(out,s.data(),size);
+    }
+    
+                           
     
     struct Exception : public std::exception {
     };

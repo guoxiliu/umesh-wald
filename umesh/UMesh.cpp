@@ -22,7 +22,7 @@
 
 namespace umesh {
   
-  const size_t bum_magic = 0x234235566ULL;
+  const size_t bum_magic = 0x234235567ULL;
   
   /*! helper functoin for printf debugging - puts the four elemnt
     sizes into a human-readable (short) string*/
@@ -45,12 +45,22 @@ namespace umesh {
     io::writeVector(out,vertices);
     // PRINT(perVertex->values[0]);
     // PRINT(perVertex->values.back());
+
+    // iw - changed that wto write 'numPerVertex' rather than always
+    // write one - this allows for later switching to more than one
+    // attribute
     if (perVertex) {
+      size_t numPerVertexAttributes = 1;
+      io::writeElement(out,numPerVertexAttributes);
+      io::writeString(out,perVertex->name);
       io::writeVector(out,perVertex->values);
     } else {
-      std::vector<float> dummy;
-      io::writeVector(out,dummy);
+      size_t numPerVertexAttributes = 0;
+      io::writeElement(out,numPerVertexAttributes);
     }
+    size_t numPerElementAttributes = 0;
+    io::writeElement(out,numPerElementAttributes);
+    
     io::writeVector(out,triangles);
     io::writeVector(out,quads);
     io::writeVector(out,tets);
@@ -75,15 +85,19 @@ namespace umesh {
     if (magic != bum_magic)
       throw std::runtime_error("wrong magic number in umesh file ...");
     io::readVector(in,this->vertices,"vertices");
-
-    std::vector<float> scalars;
-    io::readVector(in,scalars,"scalars");
-    if (!scalars.empty()) {
+    size_t numPerVertexAttributes = 1;
+    io::readElement(in,numPerVertexAttributes);
+    if (numPerVertexAttributes) {
       this->perVertex = std::make_shared<Attribute>();
-      this->perVertex->values = scalars;
+      io::readString(in,perVertex->name);
+      io::readVector(in,perVertex->values,"scalars");
       this->perVertex->finalize();
     }
       
+    size_t numPerElementAttributes = 0;
+    io::readElement(in,numPerElementAttributes);
+    assert(numPerElementAttributes == 0);
+    
     io::readVector(in,this->triangles,"triangles");
     io::readVector(in,this->quads,"quads");
     io::readVector(in,this->tets,"tets");
@@ -109,92 +123,24 @@ namespace umesh {
     mesh->readFrom(in);
     return mesh;
   }
-    
+  
 
   /*! tells this attribute that its values are set, and precomputations can be done */
   void Attribute::finalize()
   {
-
-#if 1
     std::mutex mutex;
-    parallel_for_blocked(0,values.size(),16*1024,[&](size_t begin, size_t end) {
-                                                   range1f rangeValueRange;
-                                                   for (size_t i=begin;i<end;i++)
-                                                     rangeValueRange.extend(values[i]);
-                                                   std::lock_guard<std::mutex> lock(mutex);
-                                                   valueRange.extend(rangeValueRange.lower);
-                                                   valueRange.extend(rangeValueRange.upper);
-                                                 });
-#else
-    for (auto &v : value) valueRange.extend(v);
-    // for (auto v : vertex) bounds.extend(v);
-#endif
+    parallel_for_blocked
+      (0,values.size(),16*1024,
+       [&](size_t begin, size_t end) {
+         range1f rangeValueRange;
+         for (size_t i=begin;i<end;i++)
+           rangeValueRange.extend(values[i]);
+         std::lock_guard<std::mutex> lock(mutex);
+         valueRange.extend(rangeValueRange.lower);
+         valueRange.extend(rangeValueRange.upper);
+       });
   }
   
-  /*! if data set has per-vertex data this won't change anything; if
-    it has per-cell scalar values it will compute create a new
-    per-vertex data field based on the averages of all adjacent
-    cell scalars */
-  void UMesh::createPerVertexData()
-  {
-    std::cout << "=======================================================" << std::endl;
-    
-    if (perVertex) return;
-
-    if (!perTet && !perHex)
-      throw std::runtime_error("cannot generate per-vertex interpolated scalar field: data set has neither per-cell nor per-vertex data fields assigned!?");
-
-    this->perVertex = std::make_shared<Attribute>(vertices.size());
-
-    struct Helper {
-      Helper(Attribute::SP perVertex)
-        : perVertex(perVertex),
-          renormalize_weights(perVertex->values.size())
-      {
-        assert(perVertex);
-      }
-      ~Helper()
-      {
-        for (int i=0;i<renormalize_weights.size();i++)
-          if (renormalize_weights[i] > 0)
-            perVertex->values[i] *= 1.f/renormalize_weights[i];
-        perVertex->finalize();
-        PRINT(perVertex->valueRange);
-      }
-      
-      void splat(float value, int vertexID) {
-        perVertex->values[vertexID] += value;
-        renormalize_weights[vertexID] += 1.f;
-      }
-      Attribute::SP perVertex;
-      std::vector<float> renormalize_weights;
-    } helper(this->perVertex);
-
-    assert(pyrs.empty()); // not implemented
-    assert(wedges.empty()); // not implemented
-    for (int i=0;i<tets.size();i++) {
-      helper.splat(perTet->values[i],tets[i].x);
-      helper.splat(perTet->values[i],tets[i].y);
-      helper.splat(perTet->values[i],tets[i].z);
-      helper.splat(perTet->values[i],tets[i].w);
-    }
-    for (int i=0;i<hexes.size();i++) {
-      helper.splat(perHex->values[i],hexes[i].base.x);
-      helper.splat(perHex->values[i],hexes[i].base.y);
-      helper.splat(perHex->values[i],hexes[i].base.z);
-      helper.splat(perHex->values[i],hexes[i].base.w);
-      helper.splat(perHex->values[i],hexes[i].top.x);
-      helper.splat(perHex->values[i],hexes[i].top.y);
-      helper.splat(perHex->values[i],hexes[i].top.z);
-      helper.splat(perHex->values[i],hexes[i].top.w);
-    }
-
-    // aaaaand .... free the old per-cell data
-    this->perTet = nullptr;
-    this->perHex = nullptr;
-  }
-    
-
   /*! create std::vector of primitmive references (bounding box plus
     tag) for every volumetric prim in this mesh */
   void UMesh::createVolumePrimRefs(std::vector<UMesh::PrimRef> &result)
@@ -231,17 +177,17 @@ namespace umesh {
   void UMesh::finalize()
   {
     if (perVertex) perVertex->finalize();
-    if (perHex)    perHex->finalize();
-    if (perTet)    perTet->finalize();
     bounds = box3f();
     std::mutex mutex;
-    parallel_for_blocked(0,vertices.size(),16*1024,[&](size_t begin, size_t end) {
-                                                     box3f rangeBounds;
-                                                     for (size_t i=begin;i<end;i++)
-                                                       rangeBounds.extend(vertices[i]);
-                                                     std::lock_guard<std::mutex> lock(mutex);
-                                                     bounds.extend(rangeBounds);
-                                                   });
+    parallel_for_blocked
+      (0,vertices.size(),16*1024,
+       [&](size_t begin, size_t end) {
+         box3f rangeBounds;
+         for (size_t i=begin;i<end;i++)
+           rangeBounds.extend(vertices[i]);
+         std::lock_guard<std::mutex> lock(mutex);
+         bounds.extend(rangeBounds);
+       });
   }
   
   /*! print some basic info of this mesh to std::cout */
