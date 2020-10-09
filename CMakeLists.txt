@@ -17,7 +17,7 @@
 if (POLICY CMP0048)
   cmake_policy(SET CMP0048 NEW)
 endif()
-project(UMesh VERSION 1.1.0)
+project(UMesh VERSION 1.1.1)
 
 cmake_minimum_required(VERSION 2.8)
 

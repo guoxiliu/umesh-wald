@@ -297,7 +297,9 @@ namespace umesh {
 
   struct FatVertexCompare {
     inline bool operator()(const FatVertex &a, const FatVertex &b) const
-    { return a.pos < b.pos; }
+    {
+      return memcmp(&a,&b,sizeof(a)) < 0; // a.pos < b.pos;
+    }
   };
   
   /*! run marhing-cubes on given 8-vertex hexahedraon, in VTK vertex
@@ -317,15 +319,15 @@ namespace umesh {
     for (const int8_t *edge = &vtkMarchingCubesTriangleCases[index][0];
          edge[0] > -1;
          edge += 3 ) {
-      vec4f triVertex[3];
+      vec4d triVertex[3];
       for (int ii=0; ii<3; ii++) {
         const int8_t *vert = vtkMarchingCubes_edges[edge[ii]];
-        const vec4f v0 = vertex[vert[0]];
-        const vec4f v1 = vertex[vert[1]];
-        const float t
-          = v1.w == v0.w
+        const vec4d v0 = vec4d((vertex[vert[0]]));
+        const vec4d v1 = vec4d((vertex[vert[1]]));
+        const double t
+          = (v1.w == v0.w)
           ? 0.f
-          : (isoValue - v0.w) / float(v1.w - v0.w);
+          : ((isoValue - v0.w) / double(v1.w - v0.w));
         triVertex[ii] = (1.f-t)*v0+t*v1;
       }
       
@@ -333,9 +335,9 @@ namespace umesh {
       if (triVertex[2] == triVertex[0]) continue;
       if (triVertex[1] == triVertex[2]) continue;
 
-      out.push_back({vec3f(triVertex[0]),0});
-      out.push_back({vec3f(triVertex[1]),0});
-      out.push_back({vec3f(triVertex[2]),0});
+      out.push_back({vec3f(vec4f(triVertex[0])),0});
+      out.push_back({vec3f(vec4f(triVertex[1])),0});
+      out.push_back({vec3f(vec4f(triVertex[2])),0});
     }
   }
 
@@ -350,8 +352,30 @@ namespace umesh {
     const vec4f b(in->vertices[tet.y],in->perVertex->values[tet.y]);
     const vec4f c(in->vertices[tet.z],in->perVertex->values[tet.z]);
     const vec4f d(in->vertices[tet.w],in->perVertex->values[tet.w]);
-    vec4f asHex[8] = { a,b,b,c, d,d,d,d };
+    vec4f asHex[8] = { a,b,c,c, d,d,d,d };
+#if 0
+    float lo = min(min(a.w,b.w),min(c.w,d.w));
+    float hi = max(max(a.w,b.w),max(c.w,d.w));
+    if (isoValue >= lo && isoValue <= hi) {
+      out.push_back({vec3f(a),0});
+      out.push_back({vec3f(b),0});
+      out.push_back({vec3f(c),0});
+
+      out.push_back({vec3f(a),0});
+      out.push_back({vec3f(b),0});
+      out.push_back({vec3f(d),0});
+
+      out.push_back({vec3f(a),0});
+      out.push_back({vec3f(c),0});
+      out.push_back({vec3f(d),0});
+
+      out.push_back({vec3f(b),0});
+      out.push_back({vec3f(c),0});
+      out.push_back({vec3f(d),0});
+    }
+#else
     process(out,asHex,isoValue);
+#endif
   }
 
   /*! blow a pyr up into a hex (by replicating vertices), then run MC
@@ -455,7 +479,8 @@ namespace umesh {
               std::back_insert_iterator<std::vector<FatVertex>>(out));
   }
   
-  void doIsoSurfaceTets(std::vector<FatVertex> &out,std::mutex &mutex,
+  void doIsoSurfaceTets(std::vector<FatVertex> &out,
+                        std::mutex &mutex,
                         UMesh::SP in,
                         size_t begin,
                         size_t end,
@@ -524,7 +549,13 @@ namespace umesh {
     std::cout << "#umesh.iso: creating vertex/index arrays ..." << std::endl;
     for (int i=0;i<numFatVertices;i++)
       fatVertices[i].idx = i;
-    if (OWL_HAVE_TBB) {
+#if 0
+    for (int i=0;i<numFatVertices;i++)
+      out->vertices.push_back(fatVertices[i].pos);
+    for (int i=0;i<numFatVertices/3;i++)
+      out->triangles.push_back(3*i+vec3i(0,1,2));
+#else
+    if (1 && OWL_HAVE_TBB) {
       tbb::parallel_sort(fatVertices.begin(),fatVertices.end(),FatVertexCompare());
     } else {
       std::sort(fatVertices.begin(),fatVertices.end(),FatVertexCompare());
@@ -532,7 +563,7 @@ namespace umesh {
 
     int numUniqueVertices = 0;
     for (int i=0;i<numFatVertices;i++)
-      if (i==0 || fatVertices[i].pos != fatVertices[i-1].pos)
+      if ((i==0) || (fatVertices[i].pos != fatVertices[i-1].pos))
         ++numUniqueVertices;
     std::cout << "#umesh.iso: found " << prettyNumber(numUniqueVertices) << " unique vertices ..." << std::endl;
     out->triangles.resize(numFatVertices/3);
@@ -551,6 +582,7 @@ namespace umesh {
                     "are three ints, and nothing but");
       ((int*)out->triangles.data())[vtx.idx] = uniqueVertexID;
     }
+#endif
     return out;
   }
   

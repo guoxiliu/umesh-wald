@@ -86,9 +86,9 @@ namespace umesh {
                 << OWL_TERMINAL_DEFAULT << std::endl;
       std::ofstream out(objFileName);
       for (auto v : result->vertices)
-        out << v.x << " " << v.y << " " << v.z << std::endl;
+        out << "v " << v.x << " " << v.y << " " << v.z << std::endl;
       for (auto t : result->triangles)
-        out << (t.x+1) << " " << (t.y+1) << " " << (t.z+1) << std::endl;
+        out << "f " << (t.x+1) << " " << (t.y+1) << " " << (t.z+1) << std::endl;
     }
       
     std::cout << "done all ..." << std::endl;

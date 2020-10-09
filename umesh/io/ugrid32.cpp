@@ -44,7 +44,7 @@ namespace umesh {
       for (int i=0;i<N;i++) {
         if (int(index[i]) < 0) throw std::runtime_error("negative index!?");
         assert(int(index[i]) >= 0);
-        assert(index[i] < vertex.size());
+        assert(index[i] < vertices.size());
         bounds.extend(vertices[index[i]]);
       }
       bool degen// = (area(bounds) == 0.f);
@@ -136,7 +136,7 @@ namespace umesh {
       float pos[3];
       for (size_t i=0;i<header.n_verts;i++) {
         readArray(data,pos,3);
-        const vec3f v(vec3d(pos[0],pos[1],pos[2]));
+        const vec3f v(vec3f(pos[0],pos[1],pos[2]));
 
         if (pos[0] < -1e20f ||
             pos[1] < -1e20f ||

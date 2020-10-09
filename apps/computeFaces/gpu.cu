@@ -45,7 +45,7 @@ namespace umesh {
     int64_t  primIdx:58;
   };
   
-  struct OWL_ALIGN(16) Facet {
+  struct Facet {
     int4         vertexIdx;
     PrimFacetRef prim;
     int          orientation;
@@ -65,7 +65,7 @@ namespace umesh {
   };
 
 
-  struct OWL_ALIGN(16) SharedFace {
+  struct SharedFace {
     int4 vertexIdx;
     PrimFacetRef onFront, onBack;
   };
