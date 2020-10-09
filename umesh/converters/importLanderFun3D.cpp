@@ -14,229 +14,34 @@
 // limitations under the License.                                           //
 // ======================================================================== //
 
-/* fun3d header reader code provided by Pat Moran (NASA). Greatly
-   indebted! */
+/* information on fund3d data format provided by Pat Moran - greatly
+   indebted! All loader code rewritten from scratch. */
 
 #include "umesh/io/ugrid32.h"
 #include "umesh/RemeshHelper.h"
 
 namespace umesh {
 
-  // const std::string path = "/space/data/huge-still-downloading";
-  std::string path = "";// "/space/test/114B_";
+  std::string path = "";
   
-  // path to *volume.X files from which to merge in a time step (may
-  // be "")
   std::string scalarsPath = "";
-
   
   /*! time step to merge in - gets ignored if no scalarPath is set;
     otherwise indiceaes which of the times steps to use; -1 means
     'last one in file' */
   int timeStep = -1;
 
+  /*! variable to load in */
   std::string variable = "";
 
-
-  /// Provide a container for native volume header data (for a single subdomain).
-  struct Header {
-    Header() : n_nodes_0(0), n_nodes(0), size(0) {}
-
-    /// File format version.
-    std::string version;
-    /// FUN3D internal: number of grid points local to the partition.
-    size_t n_nodes_0;
-    /// Number of nodes (also known as vertices or grid points).
-    size_t n_nodes;
-    /// Names of variables, in the order they occur in the data.
-    std::vector<std::string> variables;
-    /// Map from local to global vertex numbering, 1-based.
-    std::vector<long> local_to_global;
-    /// Header size, in bytes.
-    size_t size;
-  };
-
-
-  /*! Read string from \p is, stored as length n followed by n characters. */
-  std::string read_string(std::istream& is)
-  {
-    int32_t length;
-    is.read((char*) &length, sizeof(int32_t));
-    std::vector<char> chars(length);
-    is.read(chars.data(), chars.size());
-    return std::string(chars.data(), chars.size());
-  }
-
-
-  /*! Read beginning of native volume file from \p is, write into \p header. */
-  void read_native_volume_header(std::istream& is, Header* header)
-  {
-    int32_t magic;
-    is.read((char*) &magic, sizeof(int32_t));
-    if (magic != 305419896)
-      throw std::runtime_error("bad magic");
-    header->version = read_string(is);
-    int32_t i32;
-    is.read((char*) &i32, sizeof(int32_t));
-    header->n_nodes_0 = (size_t) i32;
-    is.read((char*) &i32, sizeof(int32_t));
-    header->n_nodes = (size_t) i32;
-    is.read((char*) &i32, sizeof(int32_t));
-    size_t n_variables = (size_t) i32;
-    header->variables.resize(n_variables);
-    for (size_t i = 0; i < n_variables; ++i)
-      header->variables[i] = read_string(is);
-    header->local_to_global.resize(header->n_nodes);
-    is.read((char*) header->local_to_global.data(),
-            header->local_to_global.size() * sizeof(long));
-    header->size = is.tellg();
-  }
-
-
-  /*! Read data into \p header, given native volume file \p path. */
-  void read_native_volume_header(const std::string& path, Header* header)
-  {
-    try {
-      std::ifstream is(path);
-      if (!is)
-        throw std::runtime_error("failed on open");
-      is.exceptions(std::ios::badbit | std::ios::failbit);
-      return read_native_volume_header(is, header);
-    }
-    catch (std::exception& e) {
-      throw std::runtime_error("\"" + path + "\": " + e.what());
-    }
-  }
-
-
-  /*! Return index of \p name in \p names. */
-  size_t find_variable(const std::string& name, const std::vector<std::string>& names)
-  {
-    auto it = find(names.begin(), names.end(), name);
-    if (it == names.end()) {
-      std::string err = "variable " + name + " not in (";
-      for (size_t i = 0; i < names.size(); i++) {
-        if (i > 0)
-          err += ", ";
-        err += names[i];
-      }
-      err += ")";
-      throw std::runtime_error(err);
-    }
-    return distance(names.begin(), it);
-  }
-
-  std::vector<int> availableTimeSteps(std::istream& is, const Header& h)
-  {
-    std::vector<int> result;
-    size_t size1 = sizeof(int32_t) +
-      h.n_nodes * h.variables.size() * sizeof(float);
-    size_t i = 0;
-
-    for ( ; ; i++) {
-      is.seekg(h.size + i * size1);
-      int32_t tsi;
-      is.read((char*) &tsi, sizeof(int32_t));
-      if (is.eof())
-        return result;
-      result.push_back(tsi);
-    }
-  }
 
   void getInfo(const std::string &scalarsFileName,
                std::vector<std::string> &variables,
                std::vector<int> &timeSteps)
   {
-    std::ifstream file(scalarsFileName,std::ios::binary);
-    Header header;
-    read_native_volume_header(file, &header);
-    variables = header.variables;
-    timeSteps = availableTimeSteps(file, header);
+    throw std::runtime_error("not implemented");
   }
   
-  /*!
-   * Find time step \p ts and return the corresponding index i for the
-   * ith time step (index starting at 0).  Throw an exception if not
-   * found. If found, \p is will be positioned immediately following the
-   * time step integer matching \p ts.
-   */
-  size_t seek_time_step(std::istream& is, const Header& h, int ts)
-  {
-    // Disable ios::failbit so end-of-file state does not trigger exception;
-    // we test for eof and provide a more meaningful error message.
-    std::ios::iostate exceptions = is.exceptions();
-    is.exceptions(exceptions & ~std::ios::failbit);
-
-    int ts0 = -1;
-    size_t size1 = sizeof(int32_t) +
-      h.n_nodes * h.variables.size() * sizeof(float);
-    size_t i = 0;
-    for ( ; ; i++) {
-      is.seekg(h.size + i * size1);
-      int32_t tsi;
-      is.read((char*) &tsi, sizeof(int32_t));
-      if (is.eof())
-        throw std::runtime_error("time step not found: " + std::to_string(ts));
-      if (tsi == ts)
-        break;
-      if (i == 0) {
-        ts0 = tsi;
-      }
-      else if (i == 1) {
-        //
-        // Assuming snapshots saved at a fixed stride, calculate where
-        // we would expect to find time step ts, based on ts0 and ts1,
-        // and see if that is correct.  Seeking to and reading 4-byte
-        // tsi values one at a time can be slow going if there are
-        // many time steps saved to a file.  Use this heuristic to try
-        // to find the matching time step faster.
-        //
-        int ts1 = tsi;
-        int dt = ts1 - ts0;
-        if (dt > 0 && (ts - ts0) > 0 && (ts - ts0) % dt == 0) {
-          size_t ii = (size_t) ((ts - ts0) / dt);
-          is.seekg(h.size + ii * size1);
-          is.read((char*) &tsi, sizeof(int32_t));
-          if (!is.eof() && tsi == ts) {
-            i = ii;
-            break;
-          }
-        }
-      }
-    }
-    is.exceptions(exceptions);
-    return i;
-  }
-
-
-  /*!
-   * Open native volume file specified by \p path, find \p time_step and
-   * variable with given \p name, copy field values to \p data.
-   */
-  void read_fun3d_native_volume_field(const std::string& path, int time_step,
-                                      const std::string& name, float* data)
-  {
-    try {
-      std::ifstream is(path,std::ios::binary);
-      if (!is)
-        throw std::runtime_error("failed on open");
-      is.exceptions(std::ios::badbit | std::ios::failbit);
-      Header header;
-      read_native_volume_header(is, &header);
-      size_t index = find_variable(name, header.variables);
-      seek_time_step(is, header, time_step);
-      std::vector<float> tmp(header.n_nodes * header.variables.size());
-      is.read((char*) tmp.data(), tmp.size() * sizeof(float));
-      for (size_t i = 0; i < header.n_nodes; ++i) {
-        data[i] = tmp[i * header.variables.size() + index];
-      }
-    }
-    catch (std::exception& e) {
-      throw std::runtime_error("\"" + path + "\": " + e.what());
-    }
-  }
-
-
   struct MergedMesh {
 
     MergedMesh() 
@@ -246,7 +51,10 @@ namespace umesh {
 
     void loadScalars(UMesh::SP mesh, int fileID,
                      std::string &fieldName,
-                     std::vector<long> &local_to_global)
+                     /*! where each one of the given "volume_data" and
+                         "mesh" files' vertices are supposed to go in
+                         the global, reconstituted file */
+                     std::vector<size_t> &globalVertexIDs)
     {
       if (scalarsPath == "")
         return;
@@ -256,21 +64,6 @@ namespace umesh {
       std::cout << "reading time step " << timeStep
                 << " from " << scalarsFileName << std::endl;
 
-#if 1
-      Header header;
-      read_native_volume_header(scalarsFileName, &header);
-
-      local_to_global = header.local_to_global;
-      
-      fieldName = variable;
-      int time_step = timeStep;
-      
-      std::vector<float> &data = scalars;
-      data.resize(header.n_nodes);
-      read_fun3d_native_volume_field(scalarsFileName,//path,
-                                     time_step, fieldName, data.data());
-      
-#else      
       std::ifstream file(scalarsFileName,std::ios::binary);
       if (!file.good())
         throw std::runtime_error("error opening scalars file....");
@@ -287,7 +80,6 @@ namespace umesh {
       if (!file) std::cout << "FILE INVALID" << std::endl;
       if (!file.good())
         throw std::runtime_error("error reading scalars....");
-#endif
       std::cout << "read " << prettyNumber(scalars.size())
                 << " scalars (first one is " << scalars[0] << ")" << std::endl;
     }
@@ -321,10 +113,10 @@ namespace umesh {
       UMesh::SP mesh = io::UGrid32Loader::load(meshFileName);
 
       std::string fieldName;
-      loadScalars(mesh,fileID,fieldName,local_to_global);
+      loadScalars(mesh,fileID,fieldName,globalVertexIDs);
 
       size_t requiredVertexArraySize = merged->vertices.size();
-      for (auto globalID : local_to_global)
+      for (auto globalID : globalVertexIDs)
         requiredVertexArraySize = std::max(requiredVertexArraySize,size_t(globalID)+1);
       if (!merged->perVertex) {
         merged->perVertex = std::make_shared<Attribute>();
@@ -334,8 +126,8 @@ namespace umesh {
       merged->perVertex->values.resize(requiredVertexArraySize);
       merged->vertices.resize(requiredVertexArraySize);
       for (int i=0;i<mesh->vertices.size();i++) {
-        merged->vertices[local_to_global[i]] = mesh->vertices[i];
-        merged->perVertex->values[local_to_global[i]] = scalars[i];
+        merged->vertices[globalVertexIDs[i]] = mesh->vertices[i];
+        merged->perVertex->values[globalVertexIDs[i]] = scalars[i];
       }
       // for (auto in : mesh->tets) {
       std::cout << "merging in " << prettyNumber(meta.tets) << " out of " << prettyNumber(mesh->tets.size()) << " tets" << std::endl;
@@ -399,7 +191,7 @@ namespace umesh {
                        const std::vector<vec3f> &vertices,
                        int fileID)
     {
-      return local_to_global[in];
+      return globalVertexIDs[in];
     }
     
     void translate(uint32_t *out,
@@ -413,7 +205,7 @@ namespace umesh {
     }
     
     UMesh::SP merged;
-    std::vector<long> local_to_global;
+    std::vector<size_t> globalVertexIDs;
     /*! desired time step's scalars for current brick, if provided */
     std::vector<float> scalars;
   };
