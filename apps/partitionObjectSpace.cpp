@@ -136,11 +136,7 @@ namespace umesh {
       usage("neither leaf threshold nor max bricks specified");
     std::cout << "loading umesh from " << inFileName << std::endl;
     UMesh::SP in = io::loadBinaryUMesh(inFileName);
-
-    PRINT(prettyNumber(in->tets.size()));
-    PRINT(prettyNumber(in->pyrs.size()));
-    PRINT(prettyNumber(in->wedges.size()));
-    PRINT(prettyNumber(in->hexes.size()));
+    std::cout << "done loading, found " << in->toString() << std::endl;
 
     std::priority_queue<std::pair<int,Brick *>> bricks;
     createInitialBrick(bricks,in);
