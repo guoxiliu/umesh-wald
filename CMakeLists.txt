@@ -70,3 +70,9 @@ add_subdirectory(umesh)
 # -----------------------------------------------------------------
 add_subdirectory(apps)
 
+
+# export owl variables back up to parent, in case parent needs to use OWL
+set(UMESH_LIBRARIES umesh ${OWL_LIBRARIES} PARENT_SCOPE)
+set(UMESH_INCLUDES ${PROJECT_SOURCE_DIR} ${OWL_INCLUDES} PARENT_SCOPE)
+set(UMESH_CXX_FLAGS ${OWL_CXX_FLAGS} PARENT_SCOPE)
+set(OWL_VIEWER_LIBRARIES ${OWL_VIEWER_LIBRARIES} PARENT_SCOPE)
