@@ -326,8 +326,8 @@ namespace umesh {
     
     std::vector<vec3f> vertices;
     Attribute::SP      perVertex;
-    Attribute::SP      perTet;
-    Attribute::SP      perHex;
+    // Attribute::SP      perTet;
+    // Attribute::SP      perHex;
     
     // -------------------------------------------------------
     // surface elements:

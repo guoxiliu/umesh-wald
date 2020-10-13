@@ -31,9 +31,6 @@ namespace umesh {
     template<> inline bool safe_to_copy_binary<vec3f>() { return true; }
     template<> inline bool safe_to_copy_binary<vec4i>() { return true; }
     template<> inline bool safe_to_copy_binary<vec4f>() { return true; }
-    // template<> inline bool safe_to_copy_binary<Triangle>() { return true; }
-    // template<> inline bool safe_to_copy_binary<Quad>() { return true; }
-    // template<> inline bool safe_to_copy_binary<Tet>() { return true; }
     template<> inline bool safe_to_copy_binary<Pyr>() { return true; }
     template<> inline bool safe_to_copy_binary<Wedge>() { return true; }
     template<> inline bool safe_to_copy_binary<Hex>() { return true; }
@@ -73,20 +70,20 @@ namespace umesh {
     }
 
     template<typename T>
-    void writeElement(std::ostream &out, const T &t)
+    inline void writeElement(std::ostream &out, const T &t)
     {
       out.write((char*)&t,sizeof(t));
       assert(out.good());
     }
 
     template<typename T>
-    void writeData(std::ostream &out, const T *t, size_t N)
+    inline void writeArray(std::ostream &out, const T *t, size_t N)
     {
       if (safe_to_copy_binary<T>())
         out.write((char*)t,N*sizeof(t[0]));
       else
         for (size_t i=0;i<N;i++)
-          write(out,t[i]);
+          writeElement(out,t[i]);
       assert(out.good());
     }
     
@@ -111,23 +108,27 @@ namespace umesh {
       return t;
     }
     
+    inline void readString(std::istream &in, std::string &s)
+    {
+      int size;
+      readElement(in,size);
+      s = std::string(size,' ');
+      readArray(in,s.data(),size);
+    }
     
-    struct Exception : public std::exception {
-    };
-
-    struct CouldNotOpenException : public io::Exception {
-      CouldNotOpenException(const std::string &fileName)
-        : fileName(fileName)
-      {}
-
-      const std::string fileName;
-    };
-
-    struct ReadErrorException : public io::Exception {
-    };
-
-    struct WriteErrorException : public io::Exception {
-    };
+    inline void writeString(std::ostream &out, const std::string &s)
+    {
+      int size = s.size();
+      writeElement(out,size);
+      writeArray(out,s.data(),size);
+    }
+    
+    inline std::string readString(std::istream &in)
+    {
+      std::string s;
+      readString(in,s);
+      return s;
+    }
 
   } // ::tetty::io
 } // ::tetty

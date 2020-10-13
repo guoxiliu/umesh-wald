@@ -17,7 +17,13 @@
 if (POLICY CMP0048)
   cmake_policy(SET CMP0048 NEW)
 endif()
-project(UMesh VERSION 1.1.1)
+project(UMesh VERSION 1.2.0)
+
+if (NOT (${PROJECT_SOURCE_DIR} STREQUAL ${CMAKE_HOME_DIRECTORY}))
+  SET(UMESH_IS_SUBPROJECT ON)
+else()
+  SET(UMESH_IS_SUBPROJECT OFF)
+endif()
 
 cmake_minimum_required(VERSION 2.8)
 
@@ -37,11 +43,12 @@ if(NOT SET_UP_CONFIGURATIONS_DONE)
     # set the valid options for cmake-gui drop-down list
     set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug;Release")
   endif()
+  
+  SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
+  SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
+  SET(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
 endif()
 
-SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
-SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
-SET(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
 
 
 
@@ -70,3 +77,11 @@ add_subdirectory(umesh)
 # -----------------------------------------------------------------
 add_subdirectory(apps)
 
+
+# export owl variables back up to parent, in case parent needs to use OWL
+if (UMESH_IS_SUBPROJECT)
+  set(UMESH_LIBRARIES umesh ${OWL_LIBRARIES} PARENT_SCOPE)
+  set(UMESH_INCLUDES ${PROJECT_SOURCE_DIR} ${OWL_INCLUDES} PARENT_SCOPE)
+  set(UMESH_CXX_FLAGS ${OWL_CXX_FLAGS} PARENT_SCOPE)
+  set(OWL_VIEWER_LIBRARIES ${OWL_VIEWER_LIBRARIES} PARENT_SCOPE)
+endif()

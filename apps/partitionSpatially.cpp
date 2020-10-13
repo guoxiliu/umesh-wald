@@ -33,7 +33,9 @@ namespace umesh {
   void usage(const std::string &error = "")
   {
     if (error != "")
-      std::cout << "Fatal error: " << error << std::endl << std::endl;
+      std::cout << OWL_TERMINAL_RED
+                << "\n*********** Fatal error: " << error << " ***********" << std::endl
+                << OWL_TERMINAL_DEFAULT << std::endl;
     std::cout << "./umeshPartitionSpatially <in.umesh> <args>" << std::endl;
     std::cout << "w/ Args: " << std::endl;
     std::cout << "-o <baseName>\n\tbase path for all output files (there will be multiple)" << std::endl;
@@ -137,8 +139,8 @@ namespace umesh {
   {
     std::string inFileName;
     std::string outFileBase;
-    int leafThreshold = 100000;
-    int maxBricks = 100;
+    int leafThreshold = 1<<30;
+    int maxBricks = 1<<30;
     
     for (int i=1;i<ac;i++) {
       const std::string arg = av[i];
@@ -160,15 +162,13 @@ namespace umesh {
 
     if (outFileBase == "") usage("no output file name specified");
     if (inFileName == "") usage("no input file name specified");
+    if (leafThreshold == 1<<30 && maxBricks == 1<<30)
+      usage("neither leaf threshold nor max bricks specified");
 
     std::cout << "loading umesh from " << inFileName << std::endl;
     UMesh::SP in = io::loadBinaryUMesh(inFileName);
-
-    PRINT(prettyNumber(in->tets.size()));
-    PRINT(prettyNumber(in->pyrs.size()));
-    PRINT(prettyNumber(in->wedges.size()));
-    PRINT(prettyNumber(in->hexes.size()));
-
+    std::cout << "done loading, found " << in->toString() << std::endl;
+    
     std::priority_queue<std::pair<int,Brick *>> bricks;
     createInitialBrick(bricks,in);
     
