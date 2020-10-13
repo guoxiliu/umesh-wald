@@ -41,8 +41,6 @@ namespace umesh {
     //in >> numVerts >> numTets;
     int rc = fscanf(file,"%i %i\n",&numVerts,&numTets);
     assert(rc == 2);
-    PRINT(numVerts);
-    PRINT(numTets);
     for (int i=0; i<numVerts;i++) {
       vec3f v;
       double f;

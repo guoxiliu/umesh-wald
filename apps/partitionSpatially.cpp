@@ -33,9 +33,9 @@ namespace umesh {
   void usage(const std::string &error = "")
   {
     if (error != "")
-      std::cout << OWL_TERMINAL_RED
+      std::cout << UMESH_TERMINAL_RED
                 << "\n*********** Fatal error: " << error << " ***********" << std::endl
-                << OWL_TERMINAL_DEFAULT << std::endl;
+                << UMESH_TERMINAL_DEFAULT << std::endl;
     std::cout << "./umeshPartitionSpatially <in.umesh> <args>" << std::endl;
     std::cout << "w/ Args: " << std::endl;
     std::cout << "-o <baseName>\n\tbase path for all output files (there will be multiple)" << std::endl;

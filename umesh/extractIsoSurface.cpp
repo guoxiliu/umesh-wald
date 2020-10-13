@@ -16,8 +16,7 @@
 
 #include "umesh/extractIsoSurface.h"
 #include <iterator>
-#include "owl/common/parallel/parallel_for.h"
-#if OWL_HAVE_TBB
+#if UMESH_HAVE_TBB
 # include "tbb/parallel_sort.h"
 #endif
 
@@ -319,25 +318,27 @@ namespace umesh {
     for (const int8_t *edge = &vtkMarchingCubesTriangleCases[index][0];
          edge[0] > -1;
          edge += 3 ) {
-      vec4d triVertex[3];
+      vec3f triVertex[3];
       for (int ii=0; ii<3; ii++) {
         const int8_t *vert = vtkMarchingCubes_edges[edge[ii]];
-        const vec4d v0 = vec4d((vertex[vert[0]]));
-        const vec4d v1 = vec4d((vertex[vert[1]]));
+        const vec4f v0 = ((vertex[vert[0]]));
+        const vec4f v1 = ((vertex[vert[1]]));
         const double t
           = (v1.w == v0.w)
           ? 0.f
           : ((isoValue - v0.w) / double(v1.w - v0.w));
-        triVertex[ii] = (1.f-t)*v0+t*v1;
+        // do this explicitly in doubles here:
+        triVertex[ii].x = (1.f-t)*v0.x+t*v1.x;
+        triVertex[ii].y = (1.f-t)*v0.y+t*v1.y;
+        triVertex[ii].z = (1.f-t)*v0.z+t*v1.z;
       }
       
       if (triVertex[1] == triVertex[0]) continue;
       if (triVertex[2] == triVertex[0]) continue;
       if (triVertex[1] == triVertex[2]) continue;
-
-      out.push_back({vec3f(vec4f(triVertex[0])),0});
-      out.push_back({vec3f(vec4f(triVertex[1])),0});
-      out.push_back({vec3f(vec4f(triVertex[2])),0});
+      
+      for (int j=0;j<3;j++)
+        out.push_back({triVertex[j],0});
     }
   }
 
@@ -514,7 +515,7 @@ namespace umesh {
     
     std::cout << "#umesh.iso: pushing " << prettyNumber(in->tets.size())
               << " tets" << std::endl;
-    owl::common::parallel_for_blocked
+    parallel_for_blocked
       (0,in->tets.size(),1024,
        [&](size_t begin, size_t end){
         doIsoSurfaceTets(fatVertices,mutex,in,begin,end,isoValue);
@@ -522,7 +523,7 @@ namespace umesh {
 
     std::cout << "#umesh.iso: pushing " << prettyNumber(in->pyrs.size())
               << " pyramids" << std::endl;
-    owl::common::parallel_for_blocked
+    parallel_for_blocked
       (0,in->pyrs.size(),1024,
        [&](size_t begin, size_t end){
         doIsoSurfacePyrs(fatVertices,mutex,in,begin,end,isoValue);
@@ -530,7 +531,7 @@ namespace umesh {
 
     std::cout << "#umesh.iso: pushing " << prettyNumber(in->wedges.size())
               << " wedges" << std::endl;
-    owl::common::parallel_for_blocked
+    parallel_for_blocked
       (0,in->wedges.size(),1024,
        [&](size_t begin, size_t end){
         doIsoSurfaceWedges(fatVertices,mutex,in,begin,end,isoValue);
@@ -538,7 +539,7 @@ namespace umesh {
 
     std::cout << "#umesh.iso: pushing " << prettyNumber(in->hexes.size())
               << " hexes" << std::endl;
-    owl::common::parallel_for_blocked
+    parallel_for_blocked
       (0,in->hexes.size(),1024,
        [&](size_t begin, size_t end){
         doIsoSurfaceHexes(fatVertices,mutex,in,begin,end,isoValue);
@@ -549,13 +550,7 @@ namespace umesh {
     std::cout << "#umesh.iso: creating vertex/index arrays ..." << std::endl;
     for (int i=0;i<numFatVertices;i++)
       fatVertices[i].idx = i;
-#if 0
-    for (int i=0;i<numFatVertices;i++)
-      out->vertices.push_back(fatVertices[i].pos);
-    for (int i=0;i<numFatVertices/3;i++)
-      out->triangles.push_back(3*i+vec3i(0,1,2));
-#else
-    if (1 && OWL_HAVE_TBB) {
+    if (UMESH_HAVE_TBB) {
       tbb::parallel_sort(fatVertices.begin(),fatVertices.end(),FatVertexCompare());
     } else {
       std::sort(fatVertices.begin(),fatVertices.end(),FatVertexCompare());
@@ -582,7 +577,6 @@ namespace umesh {
                     "are three ints, and nothing but");
       ((int*)out->triangles.data())[vtx.idx] = uniqueVertexID;
     }
-#endif
     return out;
   }
   

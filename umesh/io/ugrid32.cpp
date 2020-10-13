@@ -178,13 +178,12 @@ namespace umesh {
         // if (i < 10 || i >= (header.n_tris-10))
         //   PRINT(vec3i(idx[0],idx[1],idx[2]));
 
-        try {
+        // try {
           if (notDegenerate(result->vertices,idx,3))
           result->triangles.push_back(vec3i((int)idx[0], (int)idx[1], (int)idx[2]));
-        } catch (std::exception & e) {
-          PRINT(i);
-          throw e;
-        }
+        // } catch (std::exception & e) {
+        //   throw e;
+        // }
       }
 
       // quads

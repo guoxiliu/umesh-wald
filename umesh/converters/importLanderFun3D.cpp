@@ -18,6 +18,7 @@
    indebted! All loader code rewritten from scratch. */
 
 #include "umesh/io/ugrid32.h"
+#include "umesh/io/fun3dScalars.h"
 #include "umesh/RemeshHelper.h"
 
 namespace umesh {
@@ -34,91 +35,6 @@ namespace umesh {
   /*! variable to load in */
   std::string variable = "";
 
-
-  /*! class that loads a fun3d "volume_data" file */
-  struct Fun3DScalarsReader {
-
-    Fun3DScalarsReader(const std::string &fileName)
-    {
-      in = std::ifstream(fileName,std::ios::binary);
-      uint32_t magicNumber = io::readElement<uint32_t>(in);
-
-      std::string versionString = io::readString(in);
-      std::cout << "Found fun3d file with version string "
-                << versionString << std::endl;
-      
-      uint32_t ignore = io::readElement<uint32_t>(in);
-      numScalars = io::readElement<uint32_t>(in);
-      
-      variableNames.resize(io::readElement<uint32_t>(in));
-      for (auto &var : variableNames) {
-        var = io::readString(in);
-      }
-
-      globalVertexIDs.resize(numScalars);
-      io::readArray(in,globalVertexIDs.data(),globalVertexIDs.size());
-
-      size_t dataBegin = in.tellg();
-      for (int tsNo=0;;tsNo++) {
-        try {
-          uint32_t timeStepID = io::readElement<uint32_t>(in);
-          timeStepOffsets[timeStepID] = in.tellg();
-          in.seekg(dataBegin
-                   +tsNo*(variableNames.size()*globalVertexIDs.size()*sizeof(float)
-                          +sizeof(timeStepID)),
-                   std::ios::beg);
-        } catch (std::exception e) {
-          in.clear(in.goodbit);
-          break;
-        };
-      }
-    }
-
-    void readTimeStep(std::vector<float> &scalars,
-                      const std::string &desiredVariable,
-                      int desiredTimeStep)
-    {
-      scalars.resize(globalVertexIDs.size());
-      
-      /* offsets based on _blocks_ of time steps (one per variable) */
-      auto it = timeStepOffsets.find(desiredTimeStep);
-      if (it == timeStepOffsets.end())
-        throw std::runtime_error("could not find requested time step!");
-      size_t offset = it->second;
-
-      /* offsets based on which variable */
-      for (int i=0;;i++) {
-        if (i >= variableNames.size())
-          throw std::runtime_error("couldn't find requested variable");
-        if (variableNames[i] == desiredVariable)
-          break;
-        offset += scalars.size()*sizeof(float);
-      }
-
-      in.seekg(offset,std::ios::beg);
-      io::readArray(in,scalars.data(),scalars.size());
-    }
-    
-    size_t numScalars;
-    std::ifstream in;
-    std::vector<std::string> variableNames;
-    std::vector<size_t>      globalVertexIDs;
-    /*! .first is time step ID, .second is the offset in the file */
-    std::map<int,size_t>  timeStepOffsets;
-    size_t sizeOfTimeStep;
-  };
-    
-  void getInfo(const std::string &scalarsFileName,
-               std::vector<std::string> &variables,
-               std::vector<int> &timeSteps)
-  {
-    Fun3DScalarsReader scalarReader(scalarsFileName);
-    variables = scalarReader.variableNames;
-    timeSteps.clear();
-    for (auto it : scalarReader.timeStepOffsets)
-      timeSteps.push_back(it.first);
-  }
-  
   struct MergedMesh {
 
     MergedMesh() 
@@ -139,8 +55,9 @@ namespace umesh {
       std::cout << "reading time step " << timeStep
                 << " from " << scalarsFileName << std::endl;
 
-      Fun3DScalarsReader reader(scalarsFileName);
-      reader.readTimeStep(scalars,variable,timeStep);
+      // Fun3DScalarsReader reader(scalarsFileName);
+      // reader.readTimeStep(scalars,variable,timeStep);
+      scalars = fun3d::readTimeStep(scalarsFileName,variable,timeStep);
       globalVertexIDs = reader.globalVertexIDs;
       
     //   std::ifstream file(scalarsFileName,std::ios::binary);
@@ -336,7 +253,7 @@ namespace umesh {
       std::string firstFileName = scalarsPath+std::to_string(begin);
       std::vector<std::string> variables;
       std::vector<int> timeSteps;
-      getInfo(firstFileName,variables,timeSteps);
+      fun3d::getInfo(firstFileName,variables,timeSteps);
       std::cout << "File Info: " << std::endl;
       std::cout << "variables:";
       for (auto var : variables) std::cout << " " << var;

@@ -44,6 +44,9 @@ add_library(umesh
   # fun3d format
   io/ugrid32.cpp
 
+  # fun3d _data_ files with scalar fields/variables
+  io/fun3dScalars.cpp
+  
   # nateive .umesh format
   io/UMesh.cpp
 
@@ -59,8 +62,9 @@ add_library(umesh
   )
 
 target_link_libraries(umesh
-  ${OWL_LIBRARIES}
+  ${UMESH_LIBRARIES}
   )
+set(UMESH_LIBRARIES ${UMESH_LIBRARIES} umesh)
 
 # ------------------------------------------------------------------
 # converters, that convert from one set of files in another format to

@@ -67,11 +67,11 @@ namespace umesh {
     if (in->pyrs.empty() &&
         in->wedges.empty() &&
         in->hexes.empty()) {
-      std::cout << OWL_TERMINAL_RED << std::endl;
+      std::cout << UMESH_TERMINAL_RED << std::endl;
       std::cout << "*******************************************************" << std::endl;
       std::cout << "WARNING: umesh already contains only tets..." << std::endl;
       std::cout << "*******************************************************" << std::endl;
-      std::cout << OWL_TERMINAL_DEFAULT << std::endl;
+      std::cout << UMESH_TERMINAL_DEFAULT << std::endl;
     }
     
     UMesh::SP result = extractIsoSurface(in,isoValue);
@@ -82,8 +82,8 @@ namespace umesh {
     }
     if (objFileName != "") {
       std::cout << "writing in OBJ format to " << objFileName << std::endl;
-      std::cout << OWL_TERMINAL_RED << "# WARNING - this can take a while!"
-                << OWL_TERMINAL_DEFAULT << std::endl;
+      std::cout << UMESH_TERMINAL_RED << "# WARNING - this can take a while!"
+                << UMESH_TERMINAL_DEFAULT << std::endl;
       std::ofstream out(objFileName);
       for (auto v : result->vertices)
         out << "v " << v.x << " " << v.y << " " << v.z << std::endl;

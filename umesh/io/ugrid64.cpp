@@ -59,30 +59,16 @@ namespace umesh {
            vertices[index[2]] == vertices[index[3]])) {
         if (!degen) {
           static int extraDegenTets = 0;
-          // PRINT(bounds);
-          // PRINT(index);
-          // PRINT(vertices[index[0]]);
-          // PRINT(vertices[index[1]]);
-          // PRINT(vertices[index[2]]);
-          // PRINT(vertices[index[3]]);
           extraDegenTets++;
-          // PRINT(extraDegenTets);
         }
         degen = true;
       }
       
       if (degen) {
-
-        // PING;
-        // for (int i=0;i<N;i++) {
-        //   PRINT(index[i]);
-        //   PRINT(vertices[index[i]]);
-        // }
-        
         static size_t numDegen = 0;
         static size_t nextPing = 1;
         if (++numDegen >= nextPing) {
-          PRINT(numDegen);
+          std::cout << "Warning: at least " << numDegen << " degenerate prims in this file" << std::endl;
           nextPing *= 2;
         }
       }
@@ -95,12 +81,8 @@ namespace umesh {
       std::cout << "#tetty.io: reading ugrid64 file ..." << std::endl;
       result = std::make_shared<UMesh>();
 
-      PRINT(dataFileName);
       std::ifstream data(dataFileName, std::ios_base::binary);
 
-      size_t maxTets = checkEnv("TETTY_MAX_TETS",1ULL<<60);
-      if (maxTets < (1ULL<<60)) std::cout << "found TETTY_MAX_TETS env-var: going to parse at most " << prettyNumber(maxTets) << " tets ..." << std::endl;
-      
       struct {
         size_t n_verts, n_tris, n_quads, n_tets, n_pyrs, n_prisms, n_hexes;
       } header;
@@ -114,7 +96,7 @@ namespace umesh {
       for (size_t i=0;i<header.n_verts;i++) {
         double pos[3];
         readArray(data,pos,3);
-        const vec3f v(vec3d(pos[0],pos[1],pos[2]));
+        const vec3f v(pos[0],pos[1],pos[2]);
 
         if (pos[0] < -1e20f ||
             pos[1] < -1e20f ||
@@ -178,7 +160,7 @@ namespace umesh {
       // tets
       std::cout << "#tetty.io: reading " << prettyNumber(header.n_tets) << " tets ..." << std::endl;
       result->tets.reserve(header.n_tets);
-#if 1
+
       std::vector<size_t> vecIndices(4*header.n_tets);
       readArray(data,vecIndices.data(),vecIndices.size());
       std::vector<UMesh::Tet> vecTets(header.n_tets);
@@ -204,21 +186,6 @@ namespace umesh {
         if (isGood[i])
           result->tets.push_back(vecTets[i]);
       
-#else
-      FILE *dump = nullptr;//fopen("temp.obj","w");
-      for (size_t i=0;i<header.n_tets;i++) {
-        size_t idx[4];
-        readArray(data,idx,4);
-        for (int i=0;i<4;i++) idx[i] -= 1;
-        
-        const UMesh::Tet tet((int)idx[0],(int)idx[1],(int)idx[2],(int)idx[3]);
-        bool good = notDegenerate(result->vertices,idx,4);
-        if (good)
-          if (result->tets.size() < maxTets)
-            result->tets.push_back(tet);
-      }
-      if (dump) fclose(dump);
-#endif
       
       // pyrs
       std::cout << "#tetty.io: reading " << prettyNumber(header.n_pyrs) << " pyramids ..." << std::endl;
