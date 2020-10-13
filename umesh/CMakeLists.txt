@@ -44,6 +44,9 @@ add_library(umesh
   # fun3d format
   io/ugrid32.cpp
 
+  # fun3d _data_ files with scalar fields/variables
+  io/fun3dScalars.cpp
+  
   # nateive .umesh format
   io/UMesh.cpp
 
