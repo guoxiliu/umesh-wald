@@ -80,9 +80,6 @@ endif()
 # -----------------------------------------------------------------
 include_directories(${UMESH_INCLUDES})
 add_definitions(${UMESH_DEFINITIONS})
-#include_directories(${OWL_INCLUDES})
-#add_definitions(${OWL_CXX_FLAGS})
-
 
 # ------------------------------------------------------------------
 # everything relating to umesh format/data/library
@@ -94,12 +91,10 @@ add_subdirectory(umesh)
 # -----------------------------------------------------------------
 add_subdirectory(apps)
 
-# export owl variables back up to parent, in case parent needs to use OWL
+# export our make variables back up to parent, so parent can do things
+# like "include_directories(${UMESH_INCLUDES})" etc
 if (UMESH_IS_SUBPROJECT)
   set(UMESH_LIBRARIES ${UMESH_LIBRARIES} umesh PARENT_SCOPE)
   set(UMESH_INCLUDES ${UMESH_INCLUDES} PARENT_SCOPE)
   set(UMESH_DEFINITIONS ${UMESH_DEFINITIONS} PARENT_SCOPE)
-#  set(UMESH_HAVE_TBB ${UMESH_HAVE_TBB} PARENT_SCOPE)
-  #  set(UMESH_CXX_FLAGS ${OWL_CXX_FLAGS} PARENT_SCOPE)
-#  set(OWL_VIEWER_LIBRARIES ${OWL_VIEWER_LIBRARIES} PARENT_SCOPE)
 endif()

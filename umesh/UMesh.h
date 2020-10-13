@@ -16,9 +16,19 @@
 
 #pragma once
 
-// #include "owl/common/math/vec.h"
-// #include "owl/common/math/box.h"
-// #include "owl/common/parallel/parallel_for.h"
+/*! how to use 'UMESH_EXTERNAL_MATH': by default (ie, if
+    UMESH_EXTERNAL_MESH is either false or not defined, umesh will use
+    its own math classes umesh::vec3f, etc, from umesh/math.h, as well
+    as its own umesh::parallel_for from umesh/parallel_for.h. If,
+    however, you want umesh to use your vec3f, box3f, vec3i, etc
+    classes, (eg, from owl::common namespace, then you can, instead,
+    before including any umesh classes, to the following 
+
+    namespace umesh {
+    using namespace owl;
+    }
+    #include <umesh/UMesh.h>
+*/
 #ifdef UMESH_EXTERNAL_MATH
 /* to not include out own math, assume that somebody outside this
    project has defined the umesh::vec3f, umesh::vec3i, and
@@ -64,11 +74,7 @@
 # define __umesh_both__   __umesh_host __umesh_device
 
 namespace umesh {
-  using namespace owl;
-  using namespace owl::common;
 
-  // typedef owl::interval<float> range1f;
-  
   struct Attribute {
     typedef std::shared_ptr<Attribute> SP;
 
