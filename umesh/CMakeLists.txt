@@ -59,8 +59,9 @@ add_library(umesh
   )
 
 target_link_libraries(umesh
-  ${OWL_LIBRARIES}
+  ${UMESH_LIBRARIES}
   )
+set(UMESH_LIBRARIES ${UMESH_LIBRARIES} umesh)
 
 # ------------------------------------------------------------------
 # converters, that convert from one set of files in another format to

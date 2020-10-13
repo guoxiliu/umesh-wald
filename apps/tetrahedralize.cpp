@@ -61,11 +61,11 @@ namespace umesh {
     if (in->pyrs.empty() &&
         in->wedges.empty() &&
         in->hexes.empty()) {
-      std::cout << OWL_TERMINAL_RED << std::endl;
+      std::cout << UMESH_TERMINAL_RED << std::endl;
       std::cout << "*******************************************************" << std::endl;
       std::cout << "WARNING: umesh already contains only tets..." << std::endl;
       std::cout << "*******************************************************" << std::endl;
-      std::cout << OWL_TERMINAL_DEFAULT << std::endl;
+      std::cout << UMESH_TERMINAL_DEFAULT << std::endl;
     }
     
     UMesh::SP out = tetrahedralize(in);

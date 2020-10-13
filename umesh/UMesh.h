@@ -16,18 +16,58 @@
 
 #pragma once
 
-#include "owl/common/math/vec.h"
-#include "owl/common/math/box.h"
-#include "owl/common/parallel/parallel_for.h"
+// #include "owl/common/math/vec.h"
+// #include "owl/common/math/box.h"
+// #include "owl/common/parallel/parallel_for.h"
+#ifdef UMESH_EXTERNAL_MATH
+/* to not include out own math, assume that somebody outside this
+   project has defined the umesh::vec3f, umesh::vec3i, and
+   umesh::vec4i types */
+#else
+# include "umesh/math.h"
+# include "umesh/parallel_for.h"
+#endif
 #include <mutex>
 #include <vector>
 #include <map>
+#include <assert.h>
+
+#ifdef _MSC_VER
+# define UMESH_ALIGN(alignment) __declspec(align(alignment)) 
+#else
+# define UMESH_ALIGN(alignment) __attribute__((aligned(alignment)))
+#endif
+#define UMESH_TERMINAL_RED "\033[0;31m"
+#define UMESH_TERMINAL_GREEN "\033[0;32m"
+#define UMESH_TERMINAL_LIGHT_GREEN "\033[1;32m"
+#define UMESH_TERMINAL_YELLOW "\033[1;33m"
+#define UMESH_TERMINAL_BLUE "\033[0;34m"
+#define UMESH_TERMINAL_LIGHT_BLUE "\033[1;34m"
+#define UMESH_TERMINAL_RESET "\033[0m"
+#define UMESH_TERMINAL_DEFAULT UMESH_TERMINAL_RESET
+#define UMESH_TERMINAL_BOLD "\033[1;1m"
+
+#define UMESH_TERMINAL_MAGENTA "\e[35m"
+#define UMESH_TERMINAL_LIGHT_MAGENTA "\e[95m"
+#define UMESH_TERMINAL_CYAN "\e[36m"
+//#define UMESH_TERMINAL_LIGHT_RED "\e[91m"
+#define UMESH_TERMINAL_LIGHT_RED "\033[1;31m"
+
+#if defined(__CUDA_ARCH__)
+# define __umesh_device   __device__
+# define __umesh_host     __host__
+#else
+# define __umesh_device   /* ignore */
+# define __umesh_host     /* ignore */
+#endif
+
+# define __umesh_both__   __umesh_host __umesh_device
 
 namespace umesh {
   using namespace owl;
   using namespace owl::common;
 
-  typedef owl::interval<float> range1f;
+  // typedef owl::interval<float> range1f;
   
   struct Attribute {
     typedef std::shared_ptr<Attribute> SP;
@@ -52,6 +92,18 @@ namespace umesh {
   typedef vec3i Triangle;
   typedef vec4i Quad;
     
+  // struct Tet {
+  //   inline Tet() {}
+  //   inline Tet(int v0, int v1, int v2, int v3)
+  //     : x(v0), y(v1), z(v2), w(v3)
+  //   {}
+  //   /*! array operator, assuming VTK ordering (see windingOrder.png
+  //     file for illustration) */
+  //   inline const int &operator[](int i) const {return ((int*)this)[i]; }
+  //   inline int &operator[](int i){return ((int*)this)[i]; }
+  //   int x,y,z,w;
+  // };
+
   struct Wedge {
     inline Wedge() {}
     inline Wedge(int v0, int v1, int v2, int v3, int v4, int v5)

@@ -22,6 +22,8 @@
 #include "umesh/io/UMesh.h"
 #include "umesh/io/btm/BTM.h"
 #include "umesh/RemeshHelper.h"
+#include <chrono>
+#include <algorithm>
 
 namespace umesh {
 
@@ -170,7 +172,6 @@ namespace umesh {
     
     for (int i=1;i<ac;i++) {
       const std::string arg = av[i];
-      PRINT(arg);
       if (arg == "-o")
         outFileName = av[++i];
       else if (arg == "--obj" || arg == "-obj")
@@ -185,19 +186,18 @@ namespace umesh {
 
     std::cout << "loading umesh from " << inFileName << std::endl;
     UMesh::SP in = io::loadBinaryUMesh(inFileName);
-    PRINT(prettyNumber(in->tets.size()));
-    PRINT(prettyNumber(in->pyrs.size()));
-    PRINT(prettyNumber(in->wedges.size()));
-    PRINT(prettyNumber(in->hexes.size()));
     if (!in->pyrs.empty() ||
         !in->wedges.empty() ||
         !in->hexes.empty())
       throw std::runtime_error("umesh contains non-tet elements...");
 
     std::cout << "computing all faces:" << std::endl;
-    double t0 = getCurrentTime();
+    std::chrono::steady_clock::time_point
+      begin = std::chrono::steady_clock::now();
+    
     ShellHelper helper(in);
-    double t1 = getCurrentTime();
-    std::cout << "computed faces, found " << prettyNumber(helper.faces.size()) << ", took " << (t1-t0) << " secs" << std::endl;
+    std::chrono::steady_clock::time_point
+      end = std::chrono::steady_clock::now();
+    std::cout << "computed faces, found " << prettyNumber(helper.faces.size()) << ", took " << std::chrono::duration_cast<std::chrono::seconds>(end - begin).count() << " secs" << std::endl;
   }  
 } // ::umesh

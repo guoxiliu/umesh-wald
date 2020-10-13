@@ -53,10 +53,6 @@ namespace umesh {
     std::cout << "loading umesh from " << inFileName << std::endl;
     UMesh::SP in = UMesh::loadFrom(inFileName);
     
-    PRINT(prettyNumber(in->tets.size()));
-    PRINT(prettyNumber(in->pyrs.size()));
-    PRINT(prettyNumber(in->wedges.size()));
-    PRINT(prettyNumber(in->hexes.size()));
     if (!in->pyrs.empty() ||
         !in->wedges.empty() ||
         !in->hexes.empty())

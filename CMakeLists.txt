@@ -26,6 +26,7 @@ else()
 endif()
 
 cmake_minimum_required(VERSION 2.8)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}")
 
 if(NOT SET_UP_CONFIGURATIONS_DONE)
   set(SET_UP_CONFIGURATIONS_DONE 1)
@@ -49,22 +50,38 @@ if(NOT SET_UP_CONFIGURATIONS_DONE)
   SET(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
 endif()
 
+set(UMESH_INCLUDES ${PROJECT_SOURCE_DIR})
 
+if (WIN32)
+  OPTION(UMESH_USE_TBB "Use TBB to parallelize host-side code?" OFF)
+else()
+  OPTION(UMESH_USE_TBB "Use TBB to parallelize host-side code?" ON)
+endif()
 
+if (UMESH_USE_TBB)
+  find_package(TBB)
+  if (TBB_FOUND)
+    #    include_directories(${TBB_INCLUDE_DIR})
+    set(UMESH_CXX_FLAGS "${UMESH_CXX_FLAGS} -DUMESH_HAVE_TBB=1")
+    set(UMESH_HAVE_TBB ON)
+    
+    set(UMESH_INCLUDES ${UMESH_INCLUDES} ${TBB_INCLUDE_DIR})
+    set(UMESH_LIBRARIES ${UMESH_LIBRARIES} ${TBB_LIBRARIES})
+    set(UMESH_DEFINITIONS -DUMESH_HAVE_TBB=1)
+  else()
+    set(UMESH_HAVE_TBB OFF)
+    message("#umesh.cmake: TBB not found; falling back to serial execution of umesh::parallel_for")
+  endif()
+endif()
 
-# ------------------------------------------------------------------
-# include owl, for owl::parallel_for and owl::vec3f
-# -----------------------------------------------------------------
-
-set(owl_dir ${PROJECT_SOURCE_DIR}/submodules/owl)
-add_subdirectory(${owl_dir} external_owl EXCLUDE_FROM_ALL)
 
 # ------------------------------------------------------------------
 # common settings across entire project
 # -----------------------------------------------------------------
-include_directories(${PROJECT_SOURCE_DIR})
-include_directories(${OWL_INCLUDES})
-add_definitions(${OWL_CXX_FLAGS})
+include_directories(${UMESH_INCLUDES})
+add_definitions(${UMESH_DEFINITIONS})
+#include_directories(${OWL_INCLUDES})
+#add_definitions(${OWL_CXX_FLAGS})
 
 
 # ------------------------------------------------------------------
@@ -77,11 +94,12 @@ add_subdirectory(umesh)
 # -----------------------------------------------------------------
 add_subdirectory(apps)
 
-
 # export owl variables back up to parent, in case parent needs to use OWL
 if (UMESH_IS_SUBPROJECT)
-  set(UMESH_LIBRARIES umesh ${OWL_LIBRARIES} PARENT_SCOPE)
-  set(UMESH_INCLUDES ${PROJECT_SOURCE_DIR} ${OWL_INCLUDES} PARENT_SCOPE)
-  set(UMESH_CXX_FLAGS ${OWL_CXX_FLAGS} PARENT_SCOPE)
-  set(OWL_VIEWER_LIBRARIES ${OWL_VIEWER_LIBRARIES} PARENT_SCOPE)
+  set(UMESH_LIBRARIES ${UMESH_LIBRARIES} umesh PARENT_SCOPE)
+  set(UMESH_INCLUDES ${UMESH_INCLUDES} PARENT_SCOPE)
+  set(UMESH_DEFINITIONS ${UMESH_DEFINITIONS} PARENT_SCOPE)
+#  set(UMESH_HAVE_TBB ${UMESH_HAVE_TBB} PARENT_SCOPE)
+  #  set(UMESH_CXX_FLAGS ${OWL_CXX_FLAGS} PARENT_SCOPE)
+#  set(OWL_VIEWER_LIBRARIES ${OWL_VIEWER_LIBRARIES} PARENT_SCOPE)
 endif()

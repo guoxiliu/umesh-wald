@@ -15,6 +15,7 @@
 // ======================================================================== //
 
 #include "umesh/tetrahedralize.h"
+#include <algorithm>
 
 namespace umesh {
   struct MergedMesh {
@@ -48,9 +49,9 @@ namespace umesh {
         static bool warned = false;
         if (!warned) {
           std::cout
-            << OWL_TERMINAL_RED
+            << UMESH_TERMINAL_RED
             <<"WARNING: at least one tet (or other element that generated a tet)\n was wrongly oriented!!! (I'll swap those tets, but that's still fishy...)"
-            << OWL_TERMINAL_DEFAULT
+            << UMESH_TERMINAL_DEFAULT
             << std::endl;
           warned = true;
         }
@@ -138,15 +139,15 @@ namespace umesh {
         return it->second;
       int ID = out->vertices.size();
       
-      vec3f centerPos = 0.f;
+      vec3f centerPos = vec3f(0.f);
       float centerVal = 0.f;
       for (auto i : idx) {
         if (in->perVertex)
           centerVal += in->perVertex->values[i];
-        centerPos += in->vertices[i];
+        centerPos = centerPos + in->vertices[i];
       }
       centerVal *= (1.f/idx.size());
-      centerPos *= (1.f/idx.size());
+      centerPos = centerPos * (1.f/idx.size());
       
       newVertices[idx] = ID;
       out->vertices.push_back(centerPos);

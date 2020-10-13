@@ -134,21 +134,21 @@ namespace umesh {
     int faceIdx = findFace(indices,side);
     TetConn::Face &face = out.faces[faceIdx];
     if (face.tetIdx[side] != -1) {
-      PRINT(indices);
-      PRINT(faceIdx);
-      PRINT(side);
-      PRINT(in.tets[face.tetIdx[side]]);
-      PRINT(volume(in.vertices,in.tets[face.tetIdx[side]]));
-      PRINT(volume(in.vertices,in.tets[tetIdx]));
-      PRINT(face.tetIdx[0]);
-      PRINT(face.tetIdx[1]);
-      PRINT(in.vertices[in.tets[face.tetIdx[side]].x]);
-      PRINT(in.vertices[in.tets[face.tetIdx[side]].y]);
-      PRINT(in.vertices[in.tets[face.tetIdx[side]].z]);
+      // PRINT(indices);
+      // PRINT(faceIdx);
+      // PRINT(side);
+      // PRINT(in.tets[face.tetIdx[side]]);
+      // PRINT(volume(in.vertices,in.tets[face.tetIdx[side]]));
+      // PRINT(volume(in.vertices,in.tets[tetIdx]));
+      // PRINT(face.tetIdx[0]);
+      // PRINT(face.tetIdx[1]);
+      // PRINT(in.vertices[in.tets[face.tetIdx[side]].x]);
+      // PRINT(in.vertices[in.tets[face.tetIdx[side]].y]);
+      // PRINT(in.vertices[in.tets[face.tetIdx[side]].z]);
 
-      PRINT(in.vertices[in.tets[tetIdx].x]);
-      PRINT(in.vertices[in.tets[tetIdx].y]);
-      PRINT(in.vertices[in.tets[tetIdx].z]);
+      // PRINT(in.vertices[in.tets[tetIdx].x]);
+      // PRINT(in.vertices[in.tets[tetIdx].y]);
+      // PRINT(in.vertices[in.tets[tetIdx].z]);
 
       throw std::runtime_error("face with more than one tet on same side!?");
     }

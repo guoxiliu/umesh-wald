@@ -15,13 +15,53 @@
 // ======================================================================== //
 
 #include "umesh/UMesh.h"
-#include "owl/helper/cuda.h"
 #ifdef __CUDACC__
 # include <thrust/sort.h>
 #endif
-# ifdef OWL_HAVE_TBB
+# ifdef UMESH_HAVE_TBB
 #  include "tbb/parallel_sort.h"
 # endif
+
+#include <cuda_runtime.h>
+
+#define CUDA_CHECK( call )                                              \
+  {                                                                     \
+    cudaError_t rc = call;                                              \
+    if (rc != cudaSuccess) {                                            \
+      fprintf(stderr,                                                   \
+              "CUDA call (%s) failed with code %d (line %d): %s\n",     \
+              #call, rc, __LINE__, cudaGetErrorString(rc));             \
+      throw std::runtime_error("fatal cuda error");                     \
+    }                                                                   \
+  }
+
+#define CUDA_CALL(call) CUDA_CHECK(cuda##call)
+
+#define CUDA_CHECK2( where, call )                                      \
+  {                                                                     \
+    cudaError_t rc = call;                                              \
+    if(rc != cudaSuccess) {                                             \
+      if (where)                                                        \
+        fprintf(stderr, "at %s: CUDA call (%s) "                        \
+                "failed with code %d (line %d): %s\n",                  \
+                where,#call, rc, __LINE__, cudaGetErrorString(rc));     \
+      fprintf(stderr,                                                   \
+              "CUDA call (%s) failed with code %d (line %d): %s\n",     \
+              #call, rc, __LINE__, cudaGetErrorString(rc));             \
+      throw std::runtime_error("fatal cuda error");                     \
+    }                                                                   \
+  }
+
+#define CUDA_SYNC_CHECK()                                       \
+  {                                                             \
+    cudaDeviceSynchronize();                                    \
+    cudaError_t rc = cudaGetLastError();                        \
+    if (rc != cudaSuccess) {                                    \
+      fprintf(stderr, "error (%s: line %d): %s\n",              \
+              __FILE__, __LINE__, cudaGetErrorString(rc));      \
+      throw std::runtime_error("fatal cuda error");             \
+    }                                                           \
+  }
 
 namespace umesh {
   
@@ -30,14 +70,14 @@ namespace umesh {
   using std::swap;
 #else
   template<typename T>
-  inline __both__ void swap(T &a, T &b)
+  inline __umesh_both__ void swap(T &a, T &b)
   {
     T c = a; a = b; b = c;
   }
   
 #endif
   
-  struct OWL_ALIGN(64) PrimFacetRef{
+  struct UMESH_ALIGN(64) PrimFacetRef{
     /*! only 4 possible types (tet, pyr, wedge, or hex) */
     uint64_t primType:3;
     /*! only 8 possible facet it could be (in a hex) */
@@ -52,7 +92,7 @@ namespace umesh {
   };
   
   struct FacetComparator {
-    inline __both__
+    inline __umesh_both__
     bool operator()(const Facet &a, const Facet &b) const {
       return
         (a.vertexIdx.x < b.vertexIdx.x)
@@ -95,7 +135,7 @@ namespace umesh {
   // compute vertex order stage
   // ==================================================================
   
-  inline __both__
+  inline __umesh_both__
   void computeUniqueVertexOrder(Facet &facet)
   {
     int4 &idx = facet.vertexIdx;
@@ -146,7 +186,7 @@ namespace umesh {
 #else
   void computeUniqueVertexOrder(Facet *facets, size_t numFacets)
   {
-    owl::parallel_for_blocked
+    parallel_for_blocked
       (0,numFacets,1024,
        [&](size_t begin, size_t end) {
          for (size_t i=begin;i<end;i++) {
@@ -160,7 +200,7 @@ namespace umesh {
   // init faces
   // ==================================================================
   
-  inline __both__
+  inline __umesh_both__
   void writeTetFacets(Facet *facets,
                       size_t tetIdx,
                       InputMesh mesh
@@ -171,24 +211,14 @@ namespace umesh {
     for (int i=0;i<4;i++) facets[i].prim.primIdx  = tetIdx;
     for (int i=0;i<4;i++) facets[i].orientation   = 0;
     
-    int4 tet = mesh.tets[tetIdx];
+    vec4i tet = mesh.tets[tetIdx];
     facets[0].vertexIdx = { tet.y,tet.w,tet.z,-1 };
     facets[1].vertexIdx = { tet.x,tet.z,tet.w,-1 };
     facets[2].vertexIdx = { tet.x,tet.w,tet.x,-1 };
     facets[3].vertexIdx = { tet.x,tet.y,tet.z,-1 };
-
-// #ifndef __CUDACC__
-//     if (tetIdx < 10) {
-//       PRINT(tet);
-//       PRINT(facets[0].vertexIdx);
-//       PRINT(facets[1].vertexIdx);
-//       PRINT(facets[2].vertexIdx);
-//       PRINT(facets[3].vertexIdx);
-//     }
-// #endif
   }
   
-  inline __both__
+  inline __umesh_both__
   void writePyrFacets(Facet *facets,
                       size_t pyrIdx,
                       InputMesh mesh
@@ -200,7 +230,7 @@ namespace umesh {
     for (int i=0;i<5;i++) facets[i].orientation   = 0;
     
     UMesh::Pyr pyr = mesh.pyrs[pyrIdx];
-    int4 base = pyr.base;
+    vec4i base = pyr.base;
     facets[0].vertexIdx = { pyr.top,base.y,base.x,-1 };
     facets[1].vertexIdx = { pyr.top,base.z,base.y,-1 };
     facets[2].vertexIdx = { pyr.top,base.w,base.z,-1 };
@@ -208,7 +238,7 @@ namespace umesh {
     facets[4].vertexIdx = { base.x,base.y,base.z,base.w };
   }
   
-  inline __both__
+  inline __umesh_both__
   void writeWedgeFacets(Facet *facets,
                         size_t wedgeIdx,
                         InputMesh mesh
@@ -233,7 +263,7 @@ namespace umesh {
     facets[4].vertexIdx = { i0,i1,i4,i3 };
   }
   
-  inline __both__
+  inline __umesh_both__
   void writeHexFacets(Facet *facets,
                       size_t hexIdx,
                       InputMesh mesh
@@ -259,31 +289,11 @@ namespace umesh {
     facets[3].vertexIdx = { i2,i6,i7,i3 };
     facets[4].vertexIdx = { i1,i5,i6,i2 };
     facets[5].vertexIdx = { i0,i3,i7,i4 };
-
-// #ifndef __CUDACC__
-//     if (hexIdx < 10) {
-//       PRINT(hex.base);
-//       PRINT(hex.top);
-//       PRINT(facets[0].vertexIdx);
-//       PRINT(facets[1].vertexIdx);
-//       PRINT(facets[2].vertexIdx);
-//       PRINT(facets[3].vertexIdx);
-//       PRINT(facets[4].vertexIdx);
-//       PRINT(facets[5].vertexIdx);
-//     }
-// #endif
   }
   
-  inline __both__
+  inline __umesh_both__
   void writeFacets(Facet *facets, size_t jobIdx, const InputMesh &mesh)
   {
-// #ifndef __CUDACC__
-//     if (jobIdx < 10) {
-//       PRINT(jobIdx);
-//       PRINT(mesh.numTets);
-//     }
-// #endif
-    
     // write tets
     if (jobIdx < mesh.numTets) {
       writeTetFacets(facets+4*jobIdx,jobIdx,mesh);
@@ -345,8 +355,7 @@ namespace umesh {
       + mesh.numPyrs
       + mesh.numWedges
       + mesh.numHexes;
-    PRINT(numPrims);
-    owl::parallel_for_blocked
+    parallel_for_blocked
       (0,numPrims,1024,
        [&](size_t begin, size_t end) {
          for (size_t i=begin;i<end;i++)
@@ -361,16 +370,13 @@ namespace umesh {
 #ifdef __CUDACC__
   void sortFacets(Facet *facets, size_t numFacets)
   {
-    // PING;
-    // PRINT(numFacets);
-    // PRINT(numFacets*sizeof(*facets));
     thrust::sort(thrust::device,
                  facets,facets+numFacets,FacetComparator());
   }
 #else
   void sortFacets(Facet *facets, size_t numFacets)
   {
-# ifdef OWL_HAVE_TBB
+# ifdef UMESH_HAVE_TBB
     tbb::parallel_sort(facets,facets+numFacets,FacetComparator());
 # else
     std::sort(facets,facets+numFacets,FacetComparator());
@@ -432,17 +438,13 @@ namespace umesh {
     upload(mesh.pyrs,mesh.numPyrs,input->pyrs);
     upload(mesh.wedges,mesh.numWedges,input->wedges);
     upload(mesh.hexes,mesh.numHexes,input->hexes);
-    PRINT(mesh.numTets);
-    PRINT(mesh.numPyrs);
-    PRINT(mesh.numWedges);
-    PRINT(mesh.numHexes);
   }
   
 
   // ==================================================================
   // let facets write the facess
   // ==================================================================
-  inline __both__
+  inline __umesh_both__
   void facesWriteFacesKernel(SharedFace *faces,
                              const Facet *facets,
                              const uint64_t *faceIndices,
@@ -482,7 +484,7 @@ namespace umesh {
                         const uint64_t *faceIndices,
                         size_t numFacets)
   {
-    owl::parallel_for_blocked
+    parallel_for_blocked
       (0,numFacets,1024,
        [&](size_t begin, size_t end) {
          for (size_t i=begin;i<end;i++)
@@ -499,7 +501,6 @@ namespace umesh {
                             size_t numFaces)
   {
     SharedFace *ptr;
-    PRINT(numFaces); PRINT(sizeof(*ptr));
     CUDA_CALL(MallocManaged((void**)&ptr,numFaces*sizeof(*ptr)));
     return ptr;
   }
@@ -557,7 +558,7 @@ namespace umesh {
   // compute face indices from (sorted) facet array
   // ==================================================================
 
-  inline __both__
+  inline __umesh_both__
   void initFaceIndexKernel(uint64_t *faceIndices,
                            Facet *facets,
                            size_t facetIdx)
@@ -568,9 +569,6 @@ namespace umesh {
       || facets[facetIdx-1].vertexIdx.y != facets[facetIdx].vertexIdx.y
       || facets[facetIdx-1].vertexIdx.z != facets[facetIdx].vertexIdx.z
       || facets[facetIdx-1].vertexIdx.w != facets[facetIdx].vertexIdx.w;
-// #ifndef __CUDACC__
-//     if (faceIndices[facetIdx]) { PING; PRINT(facetIdx); PRINT(facets[facetIdx].vertexIdx); }
-// #endif
   }
 
 #ifdef __CUDACC__
@@ -619,14 +617,7 @@ namespace umesh {
   {
     for (size_t i=0;i<numFacets;i++) {
       initFaceIndexKernel(faceIndices,facets,i);
-      // if (i<10) PRINT(facets[i].vertexIdx);
     }
-    // owl::parallel_for_blocked
-    //   (0,numFacets,1024,
-    //    [&](size_t begin, size_t end) {
-    //      for (size_t i=begin;i<end;i++)
-    //        initFaceIndexKernel(faceIndices,facets,i);
-    //    });
   }
   /*! not parallelized... this will likely be mem bound, anyway */
   void prefixSum(uint64_t *faceIndices,
@@ -649,11 +640,13 @@ namespace umesh {
 
   std::vector<SharedFace> computeFaces(UMesh::SP input)
   {
-    double t0inc = getCurrentTime();
+    std::chrono::steady_clock::time_point
+      begin_inc = std::chrono::steady_clock::now();
     InputMesh mesh;
     setupInput(mesh,input);
 
-    double t0exc = getCurrentTime();
+    std::chrono::steady_clock::time_point
+      begin_exc = std::chrono::steady_clock::now();
     
     // -------------------------------------------------------
     size_t numFacets
@@ -661,7 +654,6 @@ namespace umesh {
       + 5 * mesh.numPyrs
       + 5 * mesh.numWedges
       + 6 * mesh.numHexes;
-    PRINT(numFacets);
     Facet *facets = allocateFacets(numFacets);
     writeFacets(facets,mesh);
     computeUniqueVertexOrder(facets,numFacets);
@@ -677,7 +669,6 @@ namespace umesh {
     // -------------------------------------------------------
     size_t numFaces = faceIndices[numFacets-1]+1;
     std::vector<SharedFace> result;
-    PRINT(numFaces);
     SharedFace *faces = allocateFaces(result,numFaces);
     clearFaces(faces,numFaces);
     
@@ -686,12 +677,17 @@ namespace umesh {
 #ifdef __CUDACC__
     CUDA_SYNC_CHECK();
 #endif
-    double t1exc = getCurrentTime();
+    std::chrono::steady_clock::time_point
+      end_exc = std::chrono::steady_clock::now();
+    
     finishFaces(result,faces,numFaces);
     freeIndices(faceIndices);
-    double t1inc = getCurrentTime();
 
-    std::cout << "done computing faces, including upload/download " << (t1inc-t0inc) << " secs, vs excluding " << (t1exc-t0exc) << std::endl;
+    std::chrono::steady_clock::time_point
+      end_inc = std::chrono::steady_clock::now();
+    std::cout << "done computing faces, including upload/download "
+              << std::chrono::duration_cast<std::chrono::seconds>(end_inc - begin_inc).count() << " secs, vs including "
+              << std::chrono::duration_cast<std::chrono::seconds>(end_exc - begin_exc).count()  << std::endl;
     return result;
   }
   

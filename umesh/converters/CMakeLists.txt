@@ -6,7 +6,7 @@ add_executable(umeshImportLanderFun3D
   importLanderFun3D.cpp
   )
 target_link_libraries(umeshImportLanderFun3D
-  umesh
+  ${UMESH_LIBRARIES}
   )
 
 
