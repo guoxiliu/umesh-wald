@@ -154,7 +154,7 @@ namespace umesh {
   inline __umesh_both__
   void computeUniqueVertexOrder(Facet &facet)
   {
-    int4 &idx = facet.vertexIdx;
+    int4 idx = facet.vertexIdx;
     if (idx.w < 0) {
       if (idx.y < idx.x)
         { swap(idx.x,idx.y); facet.orientation = 1-facet.orientation; }
@@ -180,6 +180,7 @@ namespace umesh {
         swap(idx.w,idx.y);
       }
     }
+    facet.vertexIdx = idx;
   }
 
 #ifdef __CUDACC__
@@ -717,8 +718,8 @@ namespace umesh {
     std::chrono::steady_clock::time_point
       end_inc = std::chrono::steady_clock::now();
     std::cout << "done computing faces, including upload/download "
-              << std::chrono::duration_cast<std::chrono::seconds>(end_inc - begin_inc).count() << " secs, vs including "
-              << std::chrono::duration_cast<std::chrono::seconds>(end_exc - begin_exc).count()  << std::endl;
+              << std::chrono::duration_cast<std::chrono::milliseconds>(end_inc - begin_inc).count()/1024.f << " secs, vs including "
+              << std::chrono::duration_cast<std::chrono::milliseconds>(end_exc - begin_exc).count()/1024.f  << std::endl;
     return result;
   }
   
