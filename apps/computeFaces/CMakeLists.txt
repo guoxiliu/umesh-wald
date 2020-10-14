@@ -14,6 +14,8 @@
 # limitations under the License.                                           #
 # ======================================================================== #
 
+#SET(CUDA_NVCC_FLAGS "-gencode=arch=compute_75,code=compute_75")
+
 # ------------------------------------------------------------------
 # compute connectiviy of a umesh, using GPGPU algorithm - once via
 # cpu/tbb, once via gpu/cuda

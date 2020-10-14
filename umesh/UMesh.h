@@ -64,16 +64,17 @@
 //#define UMESH_TERMINAL_LIGHT_RED "\e[91m"
 #define UMESH_TERMINAL_LIGHT_RED "\033[1;31m"
 
-#if defined(__CUDA_ARCH__)
-# define __umesh_device   __device__
-# define __umesh_host     __host__
-#else
-# define __umesh_device   /* ignore */
-# define __umesh_host     /* ignore */
-#endif
-
+#if (!defined(__umesh_both__))
+# if defined(__CUDA_ARCH__)
+#  define __umesh_device   __device__
+#  define __umesh_host     __host__
+# else
+#  define __umesh_device   /* ignore */
+#  define __umesh_host     /* ignore */
+# endif
 # define __umesh_both__   __umesh_host __umesh_device
-
+#endif
+  
 namespace umesh {
 
   struct Attribute {

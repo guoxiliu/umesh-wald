@@ -113,10 +113,17 @@ namespace umesh {
       return
         (a.vertexIdx.x < b.vertexIdx.x)
         ||
-        ((a.vertexIdx.x == b.vertexIdx.x) && (a.vertexIdx.y < b.vertexIdx.y))
+        ((a.vertexIdx.x == b.vertexIdx.x) &&
+         (a.vertexIdx.y <  b.vertexIdx.y))
         ||
-        ((a.vertexIdx.x == b.vertexIdx.x) && (a.vertexIdx.y == b.vertexIdx.y)
-         && (a.vertexIdx.z < b.vertexIdx.z));
+        ((a.vertexIdx.x == b.vertexIdx.x) &&
+         (a.vertexIdx.y == b.vertexIdx.y) &&
+         (a.vertexIdx.z <  b.vertexIdx.z))
+        ||
+        ((a.vertexIdx.x == b.vertexIdx.x) &&
+         (a.vertexIdx.y == b.vertexIdx.y) &&
+         (a.vertexIdx.z == b.vertexIdx.z) &&
+         (a.vertexIdx.w <  b.vertexIdx.w));
     }
   };
 
@@ -195,7 +202,7 @@ namespace umesh {
 
   void computeUniqueVertexOrder(Facet *facet, size_t numFacets)
   {
-    size_t blockSize = 1024;
+    size_t blockSize = 128;
     size_t numBlocks = divRoundUp(numFacets,blockSize);
     computeUniqueVertexOrderLaunch<<<numBlocks,blockSize>>>
       (facet,numFacets);
@@ -359,7 +366,7 @@ namespace umesh {
       + mesh.numPyrs
       + mesh.numWedges
       + mesh.numHexes;
-    size_t blockSize = 1024;
+    size_t blockSize = 128;
     size_t numBlocks = divRoundUp(numPrims,blockSize);
     writeFacetsLaunch<<<numBlocks,blockSize>>>(facets,mesh);
   }
@@ -491,7 +498,7 @@ namespace umesh {
                         const uint64_t *faceIndices,
                         size_t numFacets)
   {
-    size_t blockSize = 1024;
+    size_t blockSize = 128;
     size_t numBlocks = divRoundUp(numFacets,blockSize);
     facesWriteFacesLaunch<<<numBlocks,blockSize>>>
       (faces,facets,faceIndices,numFacets);
@@ -623,8 +630,8 @@ namespace umesh {
                        Facet *facets,
                        size_t numFacets)
   {
-    size_t blockSize = 1024;
-    size_t numBlocks = divRoundUp(numFacets,blockSize);
+    size_t blockSize = 128;
+    size_t numBlocks = divRoundUp(numFacets+1,blockSize);
     initFaceIndicesLaunch<<<numBlocks,blockSize>>>
       (faceIndices,facets,numFacets);
   }
@@ -692,12 +699,9 @@ namespace umesh {
     
     // -------------------------------------------------------
     sortFacets(facets,numFacets);
-
-    // -------------------------------------------------------
     uint64_t *faceIndices = allocateIndices(numFacets);
     initFaceIndices(faceIndices,facets,numFacets);
     prefixSum(faceIndices,numFacets);
-
     // -------------------------------------------------------
     size_t numFaces = faceIndices[numFacets-1]+1;
     std::vector<SharedFace> result;
@@ -718,7 +722,7 @@ namespace umesh {
     std::chrono::steady_clock::time_point
       end_inc = std::chrono::steady_clock::now();
     std::cout << "done computing faces, including upload/download "
-              << std::chrono::duration_cast<std::chrono::milliseconds>(end_inc - begin_inc).count()/1024.f << " secs, vs including "
+              << std::chrono::duration_cast<std::chrono::milliseconds>(end_inc - begin_inc).count()/1024.f << " secs, vs excluding "
               << std::chrono::duration_cast<std::chrono::milliseconds>(end_exc - begin_exc).count()/1024.f  << std::endl;
     return result;
   }

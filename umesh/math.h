@@ -59,6 +59,17 @@
 #include <utility>
 #include <vector>
 
+#if (!defined(__umesh_both__))
+# if defined(__CUDA_ARCH__)
+#  define __umesh_device   __device__
+#  define __umesh_host     __host__
+# else
+#  define __umesh_device   /* ignore */
+#  define __umesh_host     /* ignore */
+# endif
+# define __umesh_both__   __umesh_host __umesh_device
+#endif
+  
 namespace umesh {
   struct range1f {
     range1f including(const float f) const;
