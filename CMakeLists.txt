@@ -74,6 +74,15 @@ if (UMESH_USE_TBB)
   endif()
 endif()
 
+# try to find CUDA; if we can't find it we'll simply disable all the
+# tools that need it
+find_package(CUDA)
+if (CUDA_FOUND)
+  CUDA_SELECT_NVCC_ARCH_FLAGS(ARCH_FLAGS Auto)
+  LIST(APPEND CUDA_NVCC_FLAGS ${ARCH_FLAGS})
+  #message("selected cuda arch flags '${ARCH_FLAGS}'")
+endif()
+
 
 # ------------------------------------------------------------------
 # common settings across entire project

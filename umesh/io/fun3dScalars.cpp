@@ -83,7 +83,7 @@ namespace umesh {
           in.seekg(offset,std::ios::beg);
           io::readArray(in,scalars.data(),scalars.size());
         }
-    
+
         size_t numScalars;
         std::ifstream in;
         std::vector<std::string> variableNames;
@@ -109,13 +109,16 @@ namespace umesh {
       /*! read one time step for one variable, from given file */
       std::vector<float> readTimeStep(const std::string &scalarsFileName,
                                       const std::string &desiredVariable,
-                                      int desiredTimeStep)
+                                      int desiredTimeStep,
+                                      std::vector<uint64_t> *globalIDs)
       {
         Fun3DScalarsReader scalarReader(scalarsFileName);
         std::vector<float> result;
         scalarReader.readTimeStep(result,
                                   desiredVariable,
                                   desiredTimeStep);
+        if (globalIDs)
+          *globalIDs = scalarReader.globalVertexIDs;
         return result;
       }
 

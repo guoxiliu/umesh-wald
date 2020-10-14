@@ -57,8 +57,9 @@ namespace umesh {
 
       // Fun3DScalarsReader reader(scalarsFileName);
       // reader.readTimeStep(scalars,variable,timeStep);
-      scalars = fun3d::readTimeStep(scalarsFileName,variable,timeStep);
-      globalVertexIDs = reader.globalVertexIDs;
+      scalars = io::fun3d::readTimeStep(scalarsFileName,variable,timeStep,
+                                        &globalVertexIDs);
+      // globalVertexIDs = reader.globalVertexIDs;
       
     //   std::ifstream file(scalarsFileName,std::ios::binary);
     //   if (!file.good())
@@ -253,7 +254,7 @@ namespace umesh {
       std::string firstFileName = scalarsPath+std::to_string(begin);
       std::vector<std::string> variables;
       std::vector<int> timeSteps;
-      fun3d::getInfo(firstFileName,variables,timeSteps);
+      io::fun3d::getInfo(firstFileName,variables,timeSteps);
       std::cout << "File Info: " << std::endl;
       std::cout << "variables:";
       for (auto var : variables) std::cout << " " << var;

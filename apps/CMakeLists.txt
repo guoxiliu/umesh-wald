@@ -15,7 +15,6 @@
 # ======================================================================== #
 
 add_definitions(${OWL_CXX_FLAGS})
-find_package(CUDA)
 
 # ------------------------------------------------------------------
 # print basic info of a umesh: #verts, tris, quads, tets, etc, as well
