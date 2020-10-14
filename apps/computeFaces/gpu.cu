@@ -155,7 +155,6 @@ namespace umesh {
   void computeUniqueVertexOrder(Facet &facet)
   {
     int4 &idx = facet.vertexIdx;
-    PING; PRINT(idx);
     if (idx.w < 0) {
       if (idx.y < idx.x)
         { swap(idx.x,idx.y); facet.orientation = 1-facet.orientation; }
@@ -181,7 +180,6 @@ namespace umesh {
         swap(idx.w,idx.y);
       }
     }
-    PRINT(idx);
   }
 
 #ifdef __CUDACC__
@@ -232,7 +230,7 @@ namespace umesh {
     vec4i tet = mesh.tets[tetIdx];
     facets[0].vertexIdx = { tet.y,tet.w,tet.z,-1 };
     facets[1].vertexIdx = { tet.x,tet.z,tet.w,-1 };
-    facets[2].vertexIdx = { tet.x,tet.w,tet.x,-1 };
+    facets[2].vertexIdx = { tet.x,tet.w,tet.y,-1 };
     facets[3].vertexIdx = { tet.x,tet.y,tet.z,-1 };
   }
   
@@ -472,6 +470,7 @@ namespace umesh {
     size_t faceIdx = faceIndices[facetIdx];
     SharedFace &face = faces[faceIdx];
     auto &side = facet.orientation ? face.onFront : face.onBack;
+    face.vertexIdx = facet.vertexIdx;
     side = facet.prim;
   }
   
@@ -543,7 +542,9 @@ namespace umesh {
   void finishFaces(std::vector<SharedFace> &result,
                    SharedFace *faces,
                    size_t numFaces)
-  { /* nothing to do */
+  {
+#if 0
+    /* validate - make sure to have this off in releases */
     std::set<vec4i> knownFaces;
     for (int i=0;i<numFaces;i++) {
       vec4i idx = faces[i].vertexIdx;
@@ -553,6 +554,8 @@ namespace umesh {
       knownFaces.insert(idx);
     }
     std::cout << "done validation, found " << knownFaces.size() << " unique faces" << std::endl;
+#endif
+    /* nothing to do */
   }
 #endif
 
