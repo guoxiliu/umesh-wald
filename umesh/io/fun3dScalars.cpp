@@ -68,7 +68,7 @@ namespace umesh {
           /* offsets based on _blocks_ of time steps (one per variable) */
           auto it = timeStepOffsets.find(desiredTimeStep);
           if (it == timeStepOffsets.end())
-            throw std::runtime_error("could not find requested time step!");
+            throw std::runtime_error("could not find requested time step #"+std::to_string(desiredTimeStep)+"!");
           size_t offset = it->second;
 
           /* offsets based on which variable */
