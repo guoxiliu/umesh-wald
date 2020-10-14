@@ -198,6 +198,8 @@ namespace umesh {
     ShellHelper helper(in);
     std::chrono::steady_clock::time_point
       end = std::chrono::steady_clock::now();
-    std::cout << "computed faces, found " << prettyNumber(helper.faces.size()) << ", took " << std::chrono::duration_cast<std::chrono::seconds>(end - begin).count() << " secs" << std::endl;
+    std::cout << "computed faces, found " << prettyNumber(helper.faces.size()) << " faces, took " << std::chrono::duration_cast<std::chrono::seconds>(end - begin).count() << " secs" << std::endl;
+
+    std::cout << "check: num vertices after re-indexing " << (helper.indexer.knownVertices.size()) << std::endl;;
   }  
 } // ::umesh

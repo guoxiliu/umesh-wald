@@ -21,8 +21,24 @@
 # ifdef UMESH_HAVE_TBB
 #  include "tbb/parallel_sort.h"
 # endif
-
+#include <set>
 #include <cuda_runtime.h>
+#include <algorithm>
+#include <string.h>
+
+#ifndef PRINT
+#ifdef __CUDA_ARCH__
+# define PRINT(va) /**/
+# define PING /**/
+#else
+# define PRINT(var) std::cout << #var << "=" << var << std::endl;
+#ifdef __WIN32__
+# define PING std::cout << __FILE__ << "::" << __LINE__ << ": " << __FUNCTION__ << std::endl;
+#else
+# define PING std::cout << __FILE__ << "::" << __LINE__ << ": " << __PRETTY_FUNCTION__ << std::endl;
+#endif
+#endif
+#endif
 
 #define CUDA_CHECK( call )                                              \
   {                                                                     \
@@ -139,6 +155,7 @@ namespace umesh {
   void computeUniqueVertexOrder(Facet &facet)
   {
     int4 &idx = facet.vertexIdx;
+    PING; PRINT(idx);
     if (idx.w < 0) {
       if (idx.y < idx.x)
         { swap(idx.x,idx.y); facet.orientation = 1-facet.orientation; }
@@ -164,6 +181,7 @@ namespace umesh {
         swap(idx.w,idx.y);
       }
     }
+    PRINT(idx);
   }
 
 #ifdef __CUDACC__
@@ -525,7 +543,17 @@ namespace umesh {
   void finishFaces(std::vector<SharedFace> &result,
                    SharedFace *faces,
                    size_t numFaces)
-  { /* nothing to do */ }
+  { /* nothing to do */
+    std::set<vec4i> knownFaces;
+    for (int i=0;i<numFaces;i++) {
+      vec4i idx = faces[i].vertexIdx;
+      std::sort(&idx.x,&idx.x+4);
+      if (knownFaces.find(idx) != knownFaces.end())
+        std::cout << "validation failed: given face already exists : " << faces[i].vertexIdx << std::endl;
+      knownFaces.insert(idx);
+    }
+    std::cout << "done validation, found " << knownFaces.size() << " unique faces" << std::endl;
+  }
 #endif
 
   // ==================================================================
@@ -703,9 +731,12 @@ namespace umesh {
       else
         inFileName = arg;
     }
+    if (inFileName == "")
+      throw std::runtime_error("no test file specified");
     UMesh::SP input = UMesh::loadFrom(inFileName);
     std::vector<SharedFace> result
       = computeFaces(input);
+    std::cout << "done computing shared faces, found " << result.size() << " faces for mesh of " << input->toString() << std::endl;
     return 0;
   } 
   

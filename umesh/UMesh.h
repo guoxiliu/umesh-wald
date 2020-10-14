@@ -41,6 +41,7 @@
 #include <vector>
 #include <map>
 #include <assert.h>
+#include <memory>
 
 #ifdef _MSC_VER
 # define UMESH_ALIGN(alignment) __declspec(align(alignment)) 

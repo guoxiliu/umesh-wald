@@ -294,7 +294,18 @@ namespace umesh {
   }
   inline bool operator<(const vec3i &a, const vec3i &b)
   {
-    return (a.x<b.x) || ((a.x==b.x) && ((a.y<b.y) || ((a.y==b.y) && (a.z<b.z))));
+    return
+      (a.x<b.x) ||
+      (a.x==b.x && a.y<b.y) ||
+      (a.x==b.x && a.y==b.y && a.z<b.z);
+  }
+  inline bool operator<(const vec4i &a, const vec4i &b)
+  {
+    return
+      (a.x<b.x) ||
+      (a.x==b.x && a.y<b.y) ||
+      (a.x==b.x && a.y==b.y && a.z<b.z) ||
+      (a.x==b.x && a.y==b.y && a.z==b.z && a.w<b.w);
   }
 
 

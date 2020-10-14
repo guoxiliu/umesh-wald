@@ -19,6 +19,8 @@
 #if UMESH_HAVE_TBB
 # include "tbb/parallel_sort.h"
 #endif
+#include <algorithm>
+#include <string.h>
 
 namespace umesh {
 
@@ -550,11 +552,11 @@ namespace umesh {
     std::cout << "#umesh.iso: creating vertex/index arrays ..." << std::endl;
     for (int i=0;i<numFatVertices;i++)
       fatVertices[i].idx = i;
-    if (UMESH_HAVE_TBB) {
+#if UMESH_HAVE_TBB
       tbb::parallel_sort(fatVertices.begin(),fatVertices.end(),FatVertexCompare());
-    } else {
+#else
       std::sort(fatVertices.begin(),fatVertices.end(),FatVertexCompare());
-    }
+#endif
 
     int numUniqueVertices = 0;
     for (int i=0;i<numFatVertices;i++)
