@@ -38,6 +38,7 @@ namespace umesh {
           variableNames.resize(io::readElement<uint32_t>(in));
           for (auto &var : variableNames) {
             var = io::readString(in);
+            std::cout << "Found variable '" << var << "'" << std::endl;
           }
 
           globalVertexIDs.resize(numScalars);
@@ -72,16 +73,26 @@ namespace umesh {
           size_t offset = it->second;
 
           /* offsets based on which variable */
-          for (int i=0;;i++) {
-            if (i >= variableNames.size())
+          int varID = 0;
+          for (varID=0;;varID++) {
+            if (varID >= variableNames.size())
               throw std::runtime_error("couldn't find requested variable");
-            if (variableNames[i] == desiredVariable)
+            if (variableNames[varID] == desiredVariable)
               break;
-            offset += scalars.size()*sizeof(float);
           }
-
+          std::vector<float> timeStepForAllVariables(scalars.size()*variableNames.size());
           in.seekg(offset,std::ios::beg);
-          io::readArray(in,scalars.data(),scalars.size());
+          io::readArray(in,timeStepForAllVariables.data(),timeStepForAllVariables.size());
+          // for (int i=0;i<20;i++) std::cout << " " << timeStepForAllVariables[i];
+          // std::cout << std::endl;
+          
+          for (int i=0;i<scalars.size();i++) {
+            scalars[i] = timeStepForAllVariables[varID+i*variableNames.size()];
+            // if (i < 20) std::cout << " / " << scalars[i];
+            // if (scalars[i] > 1e10f)
+            //   std::cout << "BIG " << i << " = " << scalars[i] << std::endl;
+          }
+          // std::cout <<std::endl;
         }
 
         size_t numScalars;
