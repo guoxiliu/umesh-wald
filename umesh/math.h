@@ -75,7 +75,7 @@ namespace umesh {
     range1f including(const float f) const;
     void extend(float f);
     void extend(const range1f &other);
-    float lower, upper;
+    float lower = +FLT_MAX, upper = -FLT_MAX;
   };
   
   inline range1f range1f::including(const float f) const
