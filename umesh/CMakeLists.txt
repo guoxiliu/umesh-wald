@@ -31,6 +31,7 @@ add_library(umesh
 
   TetConn.h
   TetConn.cpp
+
   
   # ------------------------------------------------------------------
   # I/O routines that can directly read into a umesh class
@@ -56,9 +57,16 @@ add_library(umesh
   # tetrahedralize a general umesh into a tet-mesh
   tetrahedralize.cpp
 
+  # extract outer shell faces (tris and/or quads)
+  extractShellFaces.cpp
+  
   # run marching cubes/marching tets algorithm on a umesh, produce a
   # new umesh with only triangles
   extractIsoSurface.cpp
+
+  # create a new umesh from _only_ the surface elements (and only
+  # those vertices required for that)
+  extractSurfaceMesh.cpp
   )
 
 target_link_libraries(umesh

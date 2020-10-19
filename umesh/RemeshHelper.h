@@ -53,6 +53,11 @@ namespace umesh {
         indexing to our new indexing */
     void translate(uint32_t *indices, int N,
                    UMesh::SP otherMesh);
+    /*! translate one set of vertex indices from the old mesh's
+        indexing to our new indexing */
+    void translate(int32_t *indices, int N,
+                   UMesh::SP otherMesh)
+    { translate((uint32_t*)indices,N,otherMesh); }
 
     void add(UMesh::SP otherMesh, UMesh::PrimRef primRef);
     

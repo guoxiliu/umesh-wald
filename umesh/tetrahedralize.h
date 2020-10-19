@@ -33,7 +33,7 @@ namespace umesh {
     created ones.
       
     - output contains only tets, and thus will *not* contain the
-      input's surface elements (is any such exist)
+    input's surface elements (is any such exist)
     
     - the input's vertices will be fully contained within the output's
     vertex array, with the same indices; so any surface elements
@@ -43,9 +43,9 @@ namespace umesh {
   UMesh::SP tetrahedralize(UMesh::SP mesh);
 
   /*! same as tetrahedralize(umesh), but will, eventually, contain
-      only the tetrahedra created by the 'owned' elements listed, EVEN
-      THOUGH the vertex array produced by that will be the same as in
-      the original tetrahedralize(mesh) version */
+    only the tetrahedra created by the 'owned' elements listed, EVEN
+    THOUGH the vertex array produced by that will be the same as in
+    the original tetrahedralize(mesh) version */
   UMesh::SP tetrahedralize(UMesh::SP in,
                            int ownedTets,
                            int ownedPyrs,
