@@ -26,6 +26,13 @@ namespace umesh {
     elements (ie, all those that re not shared by two different
     elements. All surface elements in the output mesh will be
     OUTWARD facing. */
-  UMesh::SP extractShellFaces(UMesh::SP mesh);
+  UMesh::SP extractShellFaces(UMesh::SP mesh,
+                              /*! if true, we'll create a new set of
+                                vertices for ONLY the required
+                                vertices. If false, we'll leave the
+                                vertices array empty, and have the
+                                vertex indices refer to the
+                                original input mesh */
+                              bool remeshVertices);
 } // ::umesh
 

@@ -17,6 +17,20 @@
 #include "umesh/extractSurfaceMesh.h"
 #include "umesh/RemeshHelper.h"
 
+#ifndef PRINT
+#ifdef __CUDA_ARCH__
+# define PRINT(va) /**/
+# define PING /**/
+#else
+# define PRINT(var) std::cout << #var << "=" << var << std::endl;
+#ifdef __WIN32__
+# define PING std::cout << __FILE__ << "::" << __LINE__ << ": " << __FUNCTION__ << std::endl;
+#else
+# define PING std::cout << __FILE__ << "::" << __LINE__ << ": " << __PRETTY_FUNCTION__ << std::endl;
+#endif
+#endif
+#endif
+
 namespace umesh {
 
   /*! Given a umesh with possibly mixed surface and volumetric

@@ -17,6 +17,20 @@
 #include "ugrid32.h"
 #include <fstream>
 
+#ifndef PRINT
+#ifdef __CUDA_ARCH__
+# define PRINT(va) /**/
+# define PING /**/
+#else
+# define PRINT(var) std::cout << #var << "=" << var << std::endl;
+#ifdef __WIN32__
+# define PING std::cout << __FILE__ << "::" << __LINE__ << ": " << __FUNCTION__ << std::endl;
+#else
+# define PING std::cout << __FILE__ << "::" << __LINE__ << ": " << __PRETTY_FUNCTION__ << std::endl;
+#endif
+#endif
+#endif
+
 namespace umesh {
   namespace io {
     
@@ -175,15 +189,8 @@ namespace umesh {
         readArray(data,idx,3);
         for (int i=0;i<3;i++) idx[i] -= 1;
 
-        // if (i < 10 || i >= (header.n_tris-10))
-        //   PRINT(vec3i(idx[0],idx[1],idx[2]));
-
-        // try {
-          if (notDegenerate(result->vertices,idx,3))
+        if (notDegenerate(result->vertices,idx,3))
           result->triangles.push_back(vec3i((int)idx[0], (int)idx[1], (int)idx[2]));
-        // } catch (std::exception & e) {
-        //   throw e;
-        // }
       }
 
       // quads
@@ -207,7 +214,6 @@ namespace umesh {
       std::cout << "#tetty.io: reading " << prettyNumber(header.n_tets) << " tets ..." << std::endl;
       result->tets.reserve(header.n_tets);
       
-// #if 1
       std::vector<uint32_t> vecIndices(4*header.n_tets);
       readArray(data,vecIndices.data(),vecIndices.size());
       std::vector<UMesh::Tet> vecTets(header.n_tets);
@@ -284,15 +290,13 @@ namespace umesh {
                (int)idx[4],(int)idx[5],(int)idx[6],(int)idx[7]});
       }
 
-// #define MAX_TETS 10000000
-//       if (result->tets.size() > MAX_TETS) {
-//         std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
-//         std::cout << "DEBUGGING: intentionallly reducing num tets!" << std::endl;
-//         std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
-//         result->tets.resize(MAX_TETS);
-//       }
-      
       std::cout << "#tetty.io: done reading ...." << std::endl;
+
+      if (!(result->triangles.empty() && result->quads.empty())) {
+        std::cout << "********************************* FOUND SURFACES **********************" << std::endl;
+        PRINT(result->triangles.size());
+        PRINT(result->quads.size());
+      }
       result->finalize();
     }
     

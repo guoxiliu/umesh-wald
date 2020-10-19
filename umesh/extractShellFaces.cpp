@@ -508,7 +508,14 @@ namespace umesh {
       elements (ie, all those that re not shared by two different
       elements. All surface elements in the output mesh will be
       OUTWARD facing. */
-  UMesh::SP extractShellFaces(UMesh::SP input)
+  UMesh::SP extractShellFaces(UMesh::SP input,
+                              /*! if true, we'll create a new set of
+                                vertices for ONLY the required
+                                vertices. If false, we'll leave the
+                                vertices array empty, and have the
+                                vertex indices refer to the
+                                original input mesh */
+                              bool remeshVertices)
   {
     std::vector<SharedFace> faces
       = computeFaces(input);
@@ -516,29 +523,41 @@ namespace umesh {
     RemeshHelper helper(*output);
     for (auto &face: faces) {
       if (face.onFront.primIdx < 0) {
-        PRINT(face.vertexIdx);
-        if (face.vertexIdx.x < 0) {
+        if (face.vertexIdx.w < 0) {
           // SWAP
-          vec3i tri(face.vertexIdx.y,face.vertexIdx.w,face.vertexIdx.z);
-          helper.translate(&tri.x,3,input);
+          vec3i tri(face.vertexIdx.x,
+                    face.vertexIdx.z,
+                    face.vertexIdx.y);
+          if (remeshVertices)
+            helper.translate(&tri.x,3,input);
           output->triangles.push_back(tri);
         } else {
           // SWAP
-          vec4i quad(face.vertexIdx.x,face.vertexIdx.w,face.vertexIdx.z,face.vertexIdx.y);
-          helper.translate(&quad.x,4,input);
+          vec4i quad(face.vertexIdx.x,
+                     face.vertexIdx.w,
+                     face.vertexIdx.z,
+                     face.vertexIdx.y);
+          if (remeshVertices)
+            helper.translate(&quad.x,4,input);
           output->quads.push_back(quad);
         }
       } else if (face.onBack.primIdx < 0) {
-        PRINT(face.vertexIdx);
-        if (face.vertexIdx.x < 0) {
+        if (face.vertexIdx.w < 0) {
           // NO SWAP
-          vec3i tri(face.vertexIdx.y,face.vertexIdx.z,face.vertexIdx.w);
-          helper.translate(&tri.x,4,input);
+          vec3i tri(face.vertexIdx.x,
+                    face.vertexIdx.y,
+                    face.vertexIdx.z);
+          if (remeshVertices)
+            helper.translate(&tri.x,4,input);
           output->triangles.push_back(tri);
         } else {
           // NO SWAP
-          vec4i quad(face.vertexIdx.x,face.vertexIdx.y,face.vertexIdx.z,face.vertexIdx.w);
-          helper.translate(&quad.x,4,input);
+          vec4i quad(face.vertexIdx.x,
+                     face.vertexIdx.y,
+                     face.vertexIdx.z,
+                     face.vertexIdx.w);
+          if (remeshVertices)
+            helper.translate(&quad.x,4,input);
           output->quads.push_back(quad);
         }
       } else {
