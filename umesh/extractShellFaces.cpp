@@ -491,7 +491,8 @@ namespace umesh {
     
     finishFaces(result,faces,numFaces);
     freeIndices(faceIndices);
-
+    freeFacets(facets);
+    
     std::chrono::steady_clock::time_point
       end_inc = std::chrono::steady_clock::now();
     std::cout << "done computing faces, including upload/download "
