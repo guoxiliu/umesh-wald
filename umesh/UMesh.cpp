@@ -140,6 +140,36 @@ namespace umesh {
          valueRange.extend(rangeValueRange.upper);
        });
   }
+
+
+  /*! create std::vector of all primrefs for all _surface_ elements
+    (triangles and quads) */
+  std::vector<UMesh::PrimRef> UMesh::createSurfacePrimRefs()
+  {
+    std::vector<PrimRef> result;
+    createSurfacePrimRefs(result);
+    return std::move(result);
+  }
+    
+
+  /*! create std::vector of all primrefs for all _surface_ elements
+    (triangles and quads) */
+  void UMesh::createSurfacePrimRefs(std::vector<PrimRef> &result)
+  {
+    result.resize(triangles.size()+quads.size());
+    parallel_for_blocked
+      (0ull,triangles.size(),64*1024,
+       [&](size_t begin,size_t end){
+         for (size_t i=begin;i<end;i++)
+           result[i] = PrimRef(TRI,i);
+       });
+    parallel_for_blocked
+      (0ull,quads.size(),64*1024,
+       [&](size_t begin,size_t end){
+         for (size_t i=begin;i<end;i++)
+           result[triangles.size()+i] = PrimRef(QUAD,i);
+       });
+  }
   
   /*! create std::vector of primitmive references (bounding box plus
     tag) for every volumetric prim in this mesh */
