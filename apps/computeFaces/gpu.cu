@@ -642,6 +642,13 @@ namespace umesh {
                            faceIndices,faceIndices+numFacets,
                            faceIndices);
   }
+  void postfixSum(uint64_t *faceIndices,
+                 size_t numFacets)
+  {
+    thrust::inclusive_scan(thrust::device,
+                           faceIndices,faceIndices+numFacets,
+                           faceIndices);
+  }
 #else
   void clearFaces(SharedFace *faces, size_t numFaces)
   {
@@ -667,6 +674,17 @@ namespace umesh {
       size_t old = faceIndices[i];
       faceIndices[i] = sum;
       sum += old;
+    }
+  }
+  /*! not parallelized... this will likely be mem bound, anyway */
+  void postfixSum(uint64_t *faceIndices,
+                 size_t numFacets)
+  {
+    size_t sum = 0;
+    for (size_t i=0;i<numFacets;i++) {
+      size_t old = faceIndices[i];
+      sum += old;
+      faceIndices[i] = sum;
     }
   }
 #endif
@@ -701,7 +719,8 @@ namespace umesh {
     sortFacets(facets,numFacets);
     uint64_t *faceIndices = allocateIndices(numFacets);
     initFaceIndices(faceIndices,facets,numFacets);
-    prefixSum(faceIndices,numFacets);
+    postfixSum(faceIndices,numFacets);
+    // prefixSum(faceIndices,numFacets);
     // -------------------------------------------------------
     size_t numFaces = faceIndices[numFacets-1]+1;
     std::vector<SharedFace> result;
