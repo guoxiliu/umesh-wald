@@ -142,6 +142,16 @@ namespace umesh {
   }
 
 
+  /*! create std::vector of primitmive references (bounding box plus
+    tag) for every volumetric prim in this mesh */
+  std::vector<UMesh::PrimRef> UMesh::createVolumePrimRefs()
+  {
+    std::vector<PrimRef> result;
+    createVolumePrimRefs(result);
+    return std::move(result);
+  }
+
+
   /*! create std::vector of all primrefs for all _surface_ elements
     (triangles and quads) */
   std::vector<UMesh::PrimRef> UMesh::createSurfacePrimRefs()
