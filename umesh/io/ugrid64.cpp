@@ -20,16 +20,6 @@
 namespace umesh {
   namespace io {
     
-    // num values of each array we're going to print ...
-#define N_PRINT 64
-    
-    size_t checkEnv(const char *varName, size_t altValue)
-    {
-      const char *var = getenv(varName);
-      if (var) return atol(var);
-      else return altValue;
-    }
-    
     UMesh::SP UGrid64Loader::load(const std::string &dataFileName,
                                   const std::string &scalarFileName)
     {

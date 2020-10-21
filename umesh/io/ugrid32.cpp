@@ -34,16 +34,6 @@
 namespace umesh {
   namespace io {
     
-    // num values of each array we're going to print ...
-#define N_PRINT 64
-    
-    size_t checkEnv(const char *varName, size_t altValue) 
-    {
-      const char *var = getenv(varName);
-      if (var) return atol(var);
-      else return altValue;
-    }
-    
     UMesh::SP UGrid32Loader::load(const std::string &dataFileName,
                                   const std::string &scalarFileName)
     {
@@ -127,22 +117,12 @@ namespace umesh {
 
       std::ifstream data(dataFileName, std::ios_base::binary);
 
-      size_t maxTets = checkEnv("TETTY_MAX_TETS",1ULL<<60);
-      if (maxTets < (1ULL<<60)) std::cout << "found TETTY_MAX_TETS env-var: going to parse at most " << prettyNumber(maxTets) << " tets ..." << std::endl;
-      
       struct {
         uint32_t n_verts, n_tris, n_quads, n_tets, n_pyrs, n_prisms, n_hexes;
       } header;
       
       readElement(data,header);
       size_t numDegen = 0;
-      // PRINT(header.n_verts);
-      // PRINT(header.n_tris);
-      // PRINT(header.n_quads);
-      // PRINT(header.n_tets);
-      // PRINT(header.n_pyrs);
-      // PRINT(header.n_prisms);
-      // PRINT(header.n_hexes);
       
       result->bounds = box3f();
       std::cout << "#tetty.io: reading " << prettyNumber(header.n_verts) << " vertices ..." << std::endl;
