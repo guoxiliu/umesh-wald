@@ -89,6 +89,17 @@ namespace umesh {
   void RemeshHelper::add(UMesh::SP otherMesh, UMesh::PrimRef primRef)
   {
     switch (primRef.type) {
+	       case UMesh::TRI: {
+      auto prim = otherMesh->triangles[primRef.ID];
+      translate((uint32_t*)&prim,3,otherMesh);
+      target.triangles.push_back(prim);
+    } break;
+    case UMesh::QUAD: {
+      auto prim = otherMesh->quads[primRef.ID];
+      translate((uint32_t*)&prim,4,otherMesh);
+      target.quads.push_back(prim);
+    } break;
+
     case UMesh::TET: {
       auto prim = otherMesh->tets[primRef.ID];
       translate((uint32_t*)&prim,4,otherMesh);
