@@ -354,18 +354,10 @@ namespace umesh {
                              const uint64_t *faceIndices,
                              size_t facetIdx)
   {
-    // PING;
     const Facet facet = facets[facetIdx];
     
-    // PRINT(facet.vertexIdx);
     size_t faceIdx = faceIndices[facetIdx]-1;
-    // PRINT(facetIdx);
-    // PRINT(faceIdx);
-    // PRINT(facet.orientation);
-    // PRINT(facet.prim.primIdx);
     SharedFace &face = faces[faceIdx];
-    // PRINT(face.onFront.primIdx);
-    // PRINT(face.onBack.primIdx);
     auto &side = facet.orientation ? face.onFront : face.onBack;
     face.vertexIdx = facet.vertexIdx;
     if (side.primIdx >= 0) PING;
@@ -377,7 +369,7 @@ namespace umesh {
                         const uint64_t *faceIndices,
                         size_t numFacets)
   {
-#if 1
+#if 0
     for (size_t i=0;i<numFacets;i++)
       facetsWriteFacesKernel(faces,facets,faceIndices,i);
 #else

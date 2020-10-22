@@ -24,6 +24,10 @@ namespace umesh {
   
   const size_t bum_magic = 0x234235567ULL;
   
+  /*! can be used to turn on/off logging/diagnostic messages in entire
+    umesh library */
+  bool verbose = false;
+
   /*! helper functoin for printf debugging - puts the four elemnt
     sizes into a human-readable (short) string*/
   std::string sizeString(UMesh::SP mesh)
@@ -43,8 +47,6 @@ namespace umesh {
   {
     io::writeElement(out,bum_magic);
     io::writeVector(out,vertices);
-    // PRINT(perVertex->values[0]);
-    // PRINT(perVertex->values.back());
 
     // iw - changed that wto write 'numPerVertex' rather than always
     // write one - this allows for later switching to more than one

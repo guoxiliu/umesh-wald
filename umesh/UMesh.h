@@ -77,6 +77,10 @@
   
 namespace umesh {
 
+  /*! can be used to turn on/off logging/diagnostic messages in entire
+    umesh library */
+  extern bool verbose;
+  
   struct Attribute {
     typedef std::shared_ptr<Attribute> SP;
 

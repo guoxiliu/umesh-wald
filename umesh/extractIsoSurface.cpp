@@ -515,7 +515,8 @@ namespace umesh {
 
     std::vector<FatVertex> fatVertices;
     
-    std::cout << "#umesh.iso: pushing " << prettyNumber(in->tets.size())
+    if (verbose)
+      std::cout << "#umesh.iso: pushing " << prettyNumber(in->tets.size())
               << " tets" << std::endl;
     parallel_for_blocked
       (0,in->tets.size(),1024,
@@ -523,6 +524,7 @@ namespace umesh {
         doIsoSurfaceTets(fatVertices,mutex,in,begin,end,isoValue);
       });
 
+    if (verbose)
     std::cout << "#umesh.iso: pushing " << prettyNumber(in->pyrs.size())
               << " pyramids" << std::endl;
     parallel_for_blocked
@@ -531,6 +533,7 @@ namespace umesh {
         doIsoSurfacePyrs(fatVertices,mutex,in,begin,end,isoValue);
       });
 
+    if (verbose)
     std::cout << "#umesh.iso: pushing " << prettyNumber(in->wedges.size())
               << " wedges" << std::endl;
     parallel_for_blocked
@@ -539,6 +542,7 @@ namespace umesh {
         doIsoSurfaceWedges(fatVertices,mutex,in,begin,end,isoValue);
       });
 
+    if (verbose)
     std::cout << "#umesh.iso: pushing " << prettyNumber(in->hexes.size())
               << " hexes" << std::endl;
     parallel_for_blocked
@@ -548,7 +552,9 @@ namespace umesh {
       });
 
     const int numFatVertices = fatVertices.size();
+    if (verbose)
     std::cout << "#umesh.iso: found " << prettyNumber(numFatVertices/3) << " triangles ..." << std::endl;
+    if (verbose)
     std::cout << "#umesh.iso: creating vertex/index arrays ..." << std::endl;
     for (int i=0;i<numFatVertices;i++)
       fatVertices[i].idx = i;
@@ -562,6 +568,7 @@ namespace umesh {
     for (int i=0;i<numFatVertices;i++)
       if ((i==0) || (fatVertices[i].pos != fatVertices[i-1].pos))
         ++numUniqueVertices;
+    if (verbose)
     std::cout << "#umesh.iso: found " << prettyNumber(numUniqueVertices) << " unique vertices ..." << std::endl;
     out->triangles.resize(numFatVertices/3);
     out->vertices.resize(numUniqueVertices);
