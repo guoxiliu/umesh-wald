@@ -475,7 +475,7 @@ namespace umesh {
                              size_t facetIdx)
   {
     const Facet facet = facets[facetIdx];
-    size_t faceIdx = faceIndices[facetIdx];
+    size_t faceIdx = faceIndices[facetIdx]-1;
     SharedFace &face = faces[faceIdx];
     auto &side = facet.orientation ? face.onFront : face.onBack;
     face.vertexIdx = facet.vertexIdx;

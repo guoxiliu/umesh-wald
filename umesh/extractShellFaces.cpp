@@ -358,7 +358,7 @@ namespace umesh {
     const Facet facet = facets[facetIdx];
     
     // PRINT(facet.vertexIdx);
-    size_t faceIdx = faceIndices[facetIdx];
+    size_t faceIdx = faceIndices[facetIdx]-1;
     // PRINT(facetIdx);
     // PRINT(faceIdx);
     // PRINT(facet.orientation);
