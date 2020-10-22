@@ -91,13 +91,6 @@ namespace umesh {
     PrimFacetRef onFront, onBack;
   };
                
-  // void usage(const std::string &error)
-  // {
-  //   if (error == "") std::cout << "Error: " << error << "\n\n";
-  //   std::cout << "Usage: ./umeshComputeFaces{CPU|GPU} in.umesh -o out.faces\n";
-  //   exit(error != "");
-  // }
-
   /*! describes input data through plain pointers, so we can run the
     same algorithm once with std::vector::data() (on the host) or
     cuda-malloced data (on gpu) */
@@ -316,8 +309,6 @@ namespace umesh {
 # else
     std::sort(facets,facets+numFacets,FacetComparator());
 # endif
-    // for (int i=0;i<100;i++)
-    //   std::cout << "facet " << i << " " << facets[i].vertexIdx << std::endl;
   }
   
   // ==================================================================
@@ -360,7 +351,6 @@ namespace umesh {
     SharedFace &face = faces[faceIdx];
     auto &side = facet.orientation ? face.onFront : face.onBack;
     face.vertexIdx = facet.vertexIdx;
-    if (side.primIdx >= 0) PING;
     side = facet.prim;
   }
   
@@ -506,18 +496,10 @@ namespace umesh {
     
     // -------------------------------------------------------
     facetsWriteFaces(faces,facets,faceIndices,numFacets);
-    // std::chrono::steady_clock::time_point
-    //   end_exc = std::chrono::steady_clock::now();
     
     finishFaces(result,faces,numFaces);
     freeIndices(faceIndices);
     freeFacets(facets);
-    
-    // std::chrono::steady_clock::time_point
-    //   end_inc = std::chrono::steady_clock::now();
-    // std::cout << "done computing faces, including upload/download "
-    //           << std::chrono::duration_cast<std::chrono::milliseconds>(end_inc - begin_inc).count()/1024.f << " secs, vs excluding "
-    //           << std::chrono::duration_cast<std::chrono::milliseconds>(end_exc - begin_exc).count()/1024.f  << std::endl;
     return result;
   }
 
@@ -543,9 +525,6 @@ namespace umesh {
     UMesh::SP output = std::make_shared<UMesh>();
     RemeshHelper helper(*output);
     for (auto &face: faces) {
-      // PRINT(face.vertexIdx);
-      // PRINT(face.onFront.primIdx);
-      // PRINT(face.onBack.primIdx);
       if (face.onFront.primIdx < 0) {
         if (face.vertexIdx.w < 0) {
           // SWAP
@@ -554,7 +533,6 @@ namespace umesh {
                     face.vertexIdx.y);
           if (remeshVertices)
             helper.translate(&tri.x,3,input);
-          // std::cout << "  -> " << tri << std::endl;
           output->triangles.push_back(tri);
         } else {
           // SWAP
@@ -574,7 +552,6 @@ namespace umesh {
                     face.vertexIdx.z);
           if (remeshVertices)
             helper.translate(&tri.x,4,input);
-          // std::cout << "  -> " << tri << std::endl;
           output->triangles.push_back(tri);
         } else {
           // NO SWAP
@@ -590,9 +567,6 @@ namespace umesh {
         /* inner face ... ignore */
       }
     }
-    PING;
-    PRINT(output->triangles.size());
-    PRINT(output->quads.size());
     return output;
   }
   
