@@ -94,6 +94,7 @@ namespace umesh {
         static size_t numDegen = 0;
         static size_t nextPing = 1;
         if (++numDegen >= nextPing) {
+      if (verbose)
           std::cout << "num degen : " << numDegen << " / " << numTests << std::endl;
           // PRINT(numDegen);
           // PRINT(nu
@@ -112,7 +113,8 @@ namespace umesh {
     UGrid32Loader::UGrid32Loader(const std::string &dataFileName,
                                  const std::string &scalarFileName)
     {
-      std::cout << "#tetty.io: reading ugrid32 file ..." << std::endl;
+      if (verbose)
+        std::cout << "#tetty.io: reading ugrid32 file ..." << std::endl;
       result = std::make_shared<UMesh>();
 
       std::ifstream data(dataFileName, std::ios_base::binary);
@@ -124,8 +126,9 @@ namespace umesh {
       readElement(data,header);
       size_t numDegen = 0;
       
-      result->bounds = box3f();
-      std::cout << "#tetty.io: reading " << prettyNumber(header.n_verts) << " vertices ..." << std::endl;
+      result->bounds = box3f(); 
+      if (verbose)
+     std::cout << "#tetty.io: reading " << prettyNumber(header.n_verts) << " vertices ..." << std::endl;
       result->vertices.reserve(header.n_verts);
       float pos[3];
       for (size_t i=0;i<header.n_verts;i++) {
@@ -138,6 +141,7 @@ namespace umesh {
             pos[0] > +1e20f ||
             pos[1] > +1e20f ||
             pos[2] > +1e20f) {
+      if (verbose)
           std::cout << "Degen vertex " << i << " " << pos << std::endl;
         }
         result->vertices.push_back(v);
@@ -145,6 +149,7 @@ namespace umesh {
 
       if (scalarFileName != "") {
         std::ifstream scalar(scalarFileName, std::ios::binary);
+      if (verbose)
         std::cout << "#tetty.io: reading " << prettyNumber(header.n_verts) << " scalars ..." << std::endl;
         result->perVertex = std::make_shared<Attribute>();
         for (size_t i=0;i<header.n_verts;i++) {
@@ -154,6 +159,7 @@ namespace umesh {
           result->perVertex->values.push_back(val);
           if (val < -1e20f ||
               val > +1e20f) {
+      if (verbose)
             std::cout << "Degen vertex " << i << " " << val << std::endl;
           }
         }
@@ -162,6 +168,7 @@ namespace umesh {
       }
       
       // tris
+      if (verbose)
       std::cout << "#tetty.io: reading " << prettyNumber(header.n_tris) << " triangles ..." << std::endl;
       result->triangles.reserve(header.n_tris);
       for (size_t i=0;i<header.n_tris;i++) {
@@ -174,6 +181,7 @@ namespace umesh {
       }
 
       // quads
+      if (verbose)
       std::cout << "#tetty.io: reading " << prettyNumber(header.n_quads) << " quads ..." << std::endl;
       result->quads.reserve(header.n_quads);
       for (size_t i=0;i<header.n_quads;i++) {
@@ -185,12 +193,14 @@ namespace umesh {
           result->quads.push_back(vec4i((int)idx[0], (int)idx[1], (int)idx[2], (int)idx[3]));
       }
 
+      if (verbose)
       std::cout << "#tetty.io: skipping " << (header.n_tris+header.n_quads) << " surface IDs" << std::endl;
       std::vector<uint32_t> surfaceIDs(header.n_tris+header.n_quads);
       readArray(data,surfaceIDs.data(),surfaceIDs.size());
       surfaceIDs.clear();
 
       // tets
+      if (verbose)
       std::cout << "#tetty.io: reading " << prettyNumber(header.n_tets) << " tets ..." << std::endl;
       result->tets.reserve(header.n_tets);
       
@@ -222,6 +232,7 @@ namespace umesh {
           result->tets.push_back(vecTets[i]);
       
       // pyrs
+      if (verbose)
       std::cout << "#tetty.io: reading " << prettyNumber(header.n_pyrs) << " pyramids ..." << std::endl;
       result->pyrs.reserve(header.n_pyrs);
       for (size_t i=0;i<header.n_pyrs;i++) {
@@ -235,6 +246,7 @@ namespace umesh {
       }
       
       // prims 
+      if (verbose)
       std::cout << "#tetty.io: reading " << prettyNumber(header.n_prisms) << " prisms ..." << std::endl;
       result->wedges.reserve(header.n_prisms);
       for (size_t i=0;i<header.n_prisms;i++) {
@@ -257,6 +269,7 @@ namespace umesh {
       }
       
       // hexes - TODO
+      if (verbose)
       std::cout << "#tetty.io: reading " << prettyNumber(header.n_hexes) << " hexes ..." << std::endl;
       result->hexes.reserve(header.n_hexes);
       for (size_t i=0;i<header.n_hexes;i++) {
@@ -270,13 +283,9 @@ namespace umesh {
                (int)idx[4],(int)idx[5],(int)idx[6],(int)idx[7]});
       }
 
+      if (verbose)
       std::cout << "#tetty.io: done reading ...." << std::endl;
 
-      if (!(result->triangles.empty() && result->quads.empty())) {
-        std::cout << "********************************* FOUND SURFACES **********************" << std::endl;
-        PRINT(result->triangles.size());
-        PRINT(result->quads.size());
-      }
       result->finalize();
     }
     
