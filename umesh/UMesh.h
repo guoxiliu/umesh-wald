@@ -388,12 +388,6 @@ namespace umesh {
 
     /*! finalize a mesh, and compute min/max ranges where required */
     void finalize();
-
-    /*! if data set has per-vertex data this won't change anything; if
-      it has per-cell scalar values it will compute create a new
-      per-vertex data field based on the averages of all adjacent
-      cell scalars */
-    void createPerVertexData();
     
     std::vector<vec3f> vertices;
     Attribute::SP      perVertex;
