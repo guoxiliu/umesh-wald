@@ -103,7 +103,7 @@ namespace umesh {
       bounds.extend(pb);
     }
     brick->domain = bounds;
-    bricks.push({brick->prims.size(),brick});
+    bricks.push({(int)brick->prims.size(),brick});
   }
 
   void writeBrick(UMesh::SP in,
@@ -191,7 +191,7 @@ namespace umesh {
           delete half[i];
         }
         else
-          bricks.push({half[i]->prims.size(),half[i]});
+          bricks.push({ (int)half[i]->prims.size(),half[i]});
       }
       delete biggest.second;
     }
