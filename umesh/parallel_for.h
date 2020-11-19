@@ -61,7 +61,7 @@ namespace umesh {
   }
 #else
 #ifndef UMESH_DISABLE_TBB
-# pragma message("warning: TBB not available, will replace all parallel_for's with serial_for's")
+# pragma message("(note): cmake did not find TBB, will replace all parallel_for's with serial_for's")
 #endif
   template<typename INDEX_T, typename TASK_T>
   inline void parallel_for(INDEX_T nTasks, TASK_T&& taskFunction, size_t blockSize=1)
