@@ -185,7 +185,7 @@ namespace umesh {
                        const std::vector<vec3f> &vertices,
                        int fileID)
     {
-      return globalVertexIDs[in];
+      return (uint32_t)globalVertexIDs[in];
     }
     
     void translate(uint32_t *out,

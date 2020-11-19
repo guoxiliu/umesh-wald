@@ -92,7 +92,7 @@ namespace umesh {
       brick->centBounds.extend(pb.center());
     }
            
-    bricks.push({brick->prims.size(),brick});
+    bricks.push({(int)brick->prims.size(),brick});
   }
 
   void writeBrick(UMesh::SP in,

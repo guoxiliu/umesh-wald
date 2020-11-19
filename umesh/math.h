@@ -274,6 +274,7 @@ namespace umesh {
   }
 
   inline int divRoundUp(int a, int b) { return (a+b-1)/b; }
+  inline size_t divRoundUp(size_t a, size_t b) { return (a + b - 1) / b; }
   inline box3f intersection(const box3f &a, const box3f &b)
   { return {max(a.lower,b.lower),min(a.upper,b.upper)}; }
   inline box3f box3f::including(const vec3f &other) const

@@ -748,22 +748,27 @@ namespace umesh {
   
   extern "C" int main(int ac, char **av)
   {
-    std::string inFileName, outFileName;
-    for (int i=1;i<ac;i++) {
-      const std::string arg = av[i];
-      if (arg == "-o")
-        outFileName = av[++i];
-      else if (arg[0] == '-')
-        usage("unknown cmdline argument "+arg);
-      else
-        inFileName = arg;
-    }
-    if (inFileName == "")
-      throw std::runtime_error("no test file specified");
-    UMesh::SP input = UMesh::loadFrom(inFileName);
-    std::vector<SharedFace> result
-      = computeFaces(input);
-    std::cout << "done computing shared faces, found " << result.size() << " faces for mesh of " << input->toString() << std::endl;
+      try {
+          std::string inFileName, outFileName;
+          for (int i = 1; i < ac; i++) {
+              const std::string arg = av[i];
+              if (arg == "-o")
+                  outFileName = av[++i];
+              else if (arg[0] == '-')
+                  usage("unknown cmdline argument " + arg);
+              else
+                  inFileName = arg;
+          }
+          if (inFileName == "")
+              throw std::runtime_error("no test file specified");
+          UMesh::SP input = UMesh::loadFrom(inFileName);
+          std::vector<SharedFace> result
+              = computeFaces(input);
+          std::cout << "done computing shared faces, found " << result.size() << " faces for mesh of " << input->toString() << std::endl;
+      }
+      catch (std::exception e) {
+          std::cerr << "fatal error " << e.what() << std::endl;
+      }
     return 0;
   } 
   
