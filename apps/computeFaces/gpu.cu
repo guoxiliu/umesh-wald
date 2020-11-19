@@ -93,7 +93,7 @@ namespace umesh {
   
 #endif
   
-  struct UMESH_ALIGN(64) PrimFacetRef{
+  struct PrimFacetRef{
     /*! only 4 possible types (tet, pyr, wedge, or hex) */
     uint64_t primType:3;
     /*! only 8 possible facet it could be (in a hex) */
@@ -101,7 +101,7 @@ namespace umesh {
     int64_t  primIdx:58;
   };
   
-  struct Facet {
+  struct UMESH_ALIGN(16) Facet {
     int4         vertexIdx;
     PrimFacetRef prim;
     int          orientation;
@@ -204,7 +204,7 @@ namespace umesh {
   {
     size_t blockSize = 128;
     size_t numBlocks = divRoundUp(numFacets,blockSize);
-    computeUniqueVertexOrderLaunch<<<numBlocks,blockSize>>>
+    computeUniqueVertexOrderLaunch<<<(int)numBlocks,(int)blockSize>>>
       (facet,numFacets);
   }
 #else
@@ -368,7 +368,7 @@ namespace umesh {
       + mesh.numHexes;
     size_t blockSize = 128;
     size_t numBlocks = divRoundUp(numPrims,blockSize);
-    writeFacetsLaunch<<<numBlocks,blockSize>>>(facets,mesh);
+    writeFacetsLaunch<<<(int)numBlocks,(int)blockSize>>>(facets,mesh);
   }
 #else
   void writeFacets(Facet *facets,
@@ -500,7 +500,7 @@ namespace umesh {
   {
     size_t blockSize = 128;
     size_t numBlocks = divRoundUp(numFacets,blockSize);
-    facesWriteFacesLaunch<<<numBlocks,blockSize>>>
+    facesWriteFacesLaunch<<<(int)numBlocks,(int)blockSize>>>
       (faces,facets,faceIndices,numFacets);
   }
 #else
@@ -632,7 +632,7 @@ namespace umesh {
   {
     size_t blockSize = 128;
     size_t numBlocks = divRoundUp(numFacets+1,blockSize);
-    initFaceIndicesLaunch<<<numBlocks,blockSize>>>
+    initFaceIndicesLaunch<<<(int)numBlocks,(int)blockSize>>>
       (faceIndices,facets,numFacets);
   }
   void prefixSum(uint64_t *faceIndices,

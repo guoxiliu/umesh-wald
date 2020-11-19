@@ -153,8 +153,8 @@ namespace umesh {
       std::cout << "splitting..." << std::endl;
       Brick *half[2];
       split(in,biggest.second,half);
-      bricks.push({half[0]->prims.size(),half[0]});
-      bricks.push({half[1]->prims.size(),half[1]});
+      bricks.push({(int)half[0]->prims.size(),half[0]});
+      bricks.push({(int)half[1]->prims.size(),half[1]});
       delete biggest.second;
     }
 
