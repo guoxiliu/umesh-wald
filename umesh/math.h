@@ -58,6 +58,7 @@
 #include <limits>
 #include <utility>
 #include <vector>
+#include <algorithm>
 
 #if (!defined(__umesh_both__))
 # if defined(__CUDA_ARCH__)

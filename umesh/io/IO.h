@@ -118,7 +118,7 @@ namespace umesh {
     
     inline void writeString(std::ostream &out, const std::string &s)
     {
-      int size = s.size();
+      int size = (int)s.size();
       writeElement(out,size);
       writeArray(out,s.data(),size);
     }
