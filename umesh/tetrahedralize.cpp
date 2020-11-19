@@ -137,7 +137,7 @@ namespace umesh {
       auto it = newVertices.find(idx);
       if (it != newVertices.end())
         return it->second;
-      int ID = out->vertices.size();
+      int ID = (int)out->vertices.size();
       
       vec3f centerPos = vec3f(0.f);
       float centerVal = 0.f;

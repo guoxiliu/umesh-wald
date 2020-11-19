@@ -330,9 +330,9 @@ namespace umesh {
           ? 0.f
           : ((isoValue - v0.w) / double(v1.w - v0.w));
         // do this explicitly in doubles here:
-        triVertex[ii].x = (1.f-t)*v0.x+t*v1.x;
-        triVertex[ii].y = (1.f-t)*v0.y+t*v1.y;
-        triVertex[ii].z = (1.f-t)*v0.z+t*v1.z;
+        triVertex[ii].x = float((1.f-t)*v0.x+t*v1.x);
+        triVertex[ii].y = float((1.f-t)*v0.y+t*v1.y);
+        triVertex[ii].z = float((1.f-t)*v0.z+t*v1.z);
       }
       
       if (triVertex[1] == triVertex[0]) continue;
@@ -552,7 +552,7 @@ namespace umesh {
         doIsoSurfaceHexes(fatVertices,mutex,in,begin,end,isoValue);
       });
 #endif
-    const int numFatVertices = fatVertices.size();
+    const int numFatVertices = (int)fatVertices.size();
     if (verbose)
     std::cout << "#umesh.iso: found " << prettyNumber(numFatVertices/3) << " triangles ..." << std::endl;
     if (verbose)

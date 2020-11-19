@@ -251,41 +251,49 @@ namespace umesh {
     
   extern "C" int main(int ac, char **av)
   {
-    std::string inFileName;
-    std::string outFileName;
-    std::string objFileName;
-    std::string btmFileName;
-    
-    for (int i=1;i<ac;i++) {
-      const std::string arg = av[i];
-      if (arg == "-o")
-        outFileName = av[++i];
-      else if (arg == "--obj" || arg == "-obj")
-        objFileName = av[++i];
-      else if (arg == "--tribin" || arg == "-tribin")
-        btmFileName = av[++i];
-      else if (arg[0] != '-')
-        inFileName = arg;
-      else
-        throw std::runtime_error("./umeshComputeShell <in.umesh> -o <out.shell> [-tribin file.tribin] [--obj <out.obj]");
-    }
+      try {
+          std::string inFileName;
+          std::string outFileName;
+          std::string objFileName;
+          std::string btmFileName;
 
-    std::cout << "loading umesh from " << inFileName << std::endl;
-    UMesh::SP in = io::loadBinaryUMesh(inFileName);
-    if (!in->pyrs.empty() ||
-        !in->wedges.empty() ||
-        !in->hexes.empty())
-      throw std::runtime_error("umesh contains non-tet elements...");
-    
-    ShellHelper helper(in);
-    std::cout << "saving tris and quads in umesh format to " << outFileName << std::endl;
-    io::saveBinaryUMesh(outFileName,helper.out);
-    std::cout << "done saving umesh file" << std::endl;
-    if (objFileName != "") {
-      saveToOBJ(objFileName,helper);
-    }
-    if (btmFileName != "") {
-      saveToBTM(btmFileName,helper.out);
-    }
+          for (int i = 1; i < ac; i++) {
+              const std::string arg = av[i];
+              if (arg == "-o")
+                  outFileName = av[++i];
+              else if (arg == "--obj" || arg == "-obj")
+                  objFileName = av[++i];
+              else if (arg == "--tribin" || arg == "-tribin")
+                  btmFileName = av[++i];
+              else if (arg[0] != '-')
+                  inFileName = arg;
+              else {
+                  throw std::runtime_error("./umeshComputeShell <in.umesh> -o <out.shell> [-tribin file.tribin] [--obj <out.obj]");
+              }
+          }
+
+          std::cout << "loading umesh from " << inFileName << std::endl;
+          UMesh::SP in = io::loadBinaryUMesh(inFileName);
+          if (!in->pyrs.empty() ||
+              !in->wedges.empty() ||
+              !in->hexes.empty())
+              throw std::runtime_error("umesh contains non-tet elements...");
+
+          ShellHelper helper(in);
+          std::cout << "saving tris and quads in umesh format to " << outFileName << std::endl;
+          io::saveBinaryUMesh(outFileName, helper.out);
+          std::cout << "done saving umesh file" << std::endl;
+          if (objFileName != "") {
+              saveToOBJ(objFileName, helper);
+          }
+          if (btmFileName != "") {
+              saveToBTM(btmFileName, helper.out);
+          }
+      }
+      catch (std::exception e) {
+          std::cerr << "fatal error " << e.what() << std::endl;
+          exit(1);
+      }
+      return 0;
   }  
 } // ::umesh
