@@ -34,7 +34,7 @@ namespace umesh {
     if (it != knownVertices.end()) {
       return it->second;
     }
-    int ID = target.vertices.size();
+    int ID = (int)target.vertices.size();
     knownVertices[v] = ID;
     target.vertexTag.push_back(tag);
     target.vertices.push_back(v);
@@ -54,7 +54,7 @@ namespace umesh {
     if (it != knownVertices.end()) {
       return it->second;
     }
-    int ID = target.vertices.size();
+    int ID = (int)target.vertices.size();
     knownVertices[v] = ID;
     if (!target.perVertex)
       target.perVertex = std::make_shared<Attribute>();

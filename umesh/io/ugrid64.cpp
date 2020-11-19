@@ -86,7 +86,7 @@ namespace umesh {
       for (size_t i=0;i<header.n_verts;i++) {
         double pos[3];
         readArray(data,pos,3);
-        const vec3f v(pos[0],pos[1],pos[2]);
+        const vec3f v((float)pos[0], (float)pos[1], (float)pos[2]);
 
         if (pos[0] < -1e20f ||
             pos[1] < -1e20f ||
