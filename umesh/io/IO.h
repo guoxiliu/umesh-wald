@@ -112,7 +112,7 @@ namespace umesh {
     {
       int size;
       readElement(in,size);
-      s = std::string(size,' ');
+      s = std::string(size-1,' ');
       readArray(in,s.data(),size);
     }
     
