@@ -61,6 +61,7 @@ namespace umesh {
     {
       size_t N;
       readElement(in,N);
+      std::cout << "vecotr reading " << N << std::endl;
       t.resize(N);
       if (safe_to_copy_binary<T>())
         in.read((char*)t.data(),N*sizeof(t[0]));
@@ -112,7 +113,7 @@ namespace umesh {
     {
       int size;
       readElement(in,size);
-      s = std::string(size-1,' ');
+      s = std::string(size,' ');
       readArray(in,s.data(),size);
     }
     
