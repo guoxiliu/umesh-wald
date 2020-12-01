@@ -60,6 +60,8 @@ namespace umesh {
         outMesh->quads.push_back(prim);
       }
 
+      std::cout << "extracted surface of " << outMesh->toString() << std::endl;
+      std::cout << "... saving (in OBJ format) to " << outFileName << std::endl;
       std::ofstream out(outFileName);
       for (auto vtx : outMesh->vertices)
         out << "v " << vtx.x << " " << vtx.y << " " << vtx.z << std::endl;
@@ -68,6 +70,7 @@ namespace umesh {
       for (auto idx : outMesh->quads)
         out << "f " << (idx.x+1) << " " << (idx.y+1)
             << " " << (idx.z+1) << " " << (idx.w+1) << std::endl;
+      std::cout << "... done" << std::endl;
     }
     catch (std::exception &e) {
       std::cerr << "fatal error " << e.what() << std::endl;
