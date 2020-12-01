@@ -44,8 +44,8 @@ namespace umesh {
       
       std::cout << "loading umesh from " << inFileName << std::endl;
       UMesh::SP inMesh = io::loadBinaryUMesh(inFileName);
-      if (!inMesh->triangles.empty() &&
-          !inMesh->quads.empty())
+      if (inMesh->triangles.empty() &&
+          inMesh->quads.empty())
         throw std::runtime_error("umesh does not contain any surface elements...");
 
       UMesh::SP outMesh = std::make_shared<UMesh>();
@@ -69,7 +69,7 @@ namespace umesh {
         out << "f " << (idx.x+1) << " " << (idx.y+1)
             << " " << (idx.z+1) << " " << (idx.w+1) << std::endl;
     }
-    catch (std::exception e) {
+    catch (std::exception &e) {
       std::cerr << "fatal error " << e.what() << std::endl;
       exit(1);
     }
