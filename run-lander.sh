@@ -1,0 +1,1 @@
+./umeshImportLanderFun3D /mnt/raid/wald/models/unstructured/lander-small/geometry/dAgpu0145_Fa_me --scalars /mnt/raid/wald/models/unstructured/lander-small/10000unsteadyiters/dAgpu0145_Fa_volume_data. -o  /mnt/raid/wald/models/umesh/lander-small-vmag-9000.umesh -var vort_mag -ts 9000 
