@@ -110,6 +110,12 @@ should produce an obj file that looks like this (ca 19M tris, rendered w/ ospray
 
 ![pic of iso-surface](docs/png/lander-small-iso-0.2.jpg)
 
+## Dump Surface Mesh (in OBJ format)
+
+Simple tool that read in a umesh file, and dumps all triangles and
+quads in this umesh to a OBJ file (all other prim types get
+ignored). Mostly for debugging.
+
 ## Compute Shared-Face Connectivity
 
 ## Compute Outer Shell

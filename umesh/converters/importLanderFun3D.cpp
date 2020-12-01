@@ -18,6 +18,7 @@
    indebted! All loader code rewritten from scratch. */
 
 #include "umesh/io/ugrid32.h"
+#include "umesh/io/ugrid64.h"
 #include "umesh/io/fun3dScalars.h"
 #include "umesh/RemeshHelper.h"
 
@@ -35,6 +36,9 @@ namespace umesh {
   /*! variable to load in */
   std::string variable = "";
 
+  /*! variable to load in */
+  std::string surfMeshName = "";
+  
   struct MergedMesh {
 
     MergedMesh() 
@@ -80,7 +84,23 @@ namespace umesh {
     //   std::cout << "read " << prettyNumber(scalars.size())
     //             << " scalars (first one is " << scalars[0] << ")" << std::endl;
     }
-      
+
+    void addMesh(UMesh::SP mesh)
+    {
+      std::cout << "merging in " << prettyNumber(mesh->triangles.size()) << " triangles" << std::endl;
+      for (auto in : mesh->triangles) {
+        UMesh::Triangle out;
+        translate((uint32_t*)&out,(const uint32_t*)&in,3,mesh->vertices,-1);
+        merged->triangles.push_back(out);
+      }
+      std::cout << "merging in " << prettyNumber(mesh->quads.size()) << " quads" << std::endl;
+      for (auto in : mesh->quads) {
+        UMesh::Quad out;
+        translate((uint32_t*)&out,(const uint32_t*)&in,4,mesh->vertices,-1);
+        merged->quads.push_back(out);
+      }
+    }
+    
     bool addPart(int fileID)
     {
       std::cout << "----------- part " << fileID << " -----------" << std::endl;
@@ -123,6 +143,28 @@ namespace umesh {
         merged->vertices[globalVertexIDs[i]] = mesh->vertices[i];
         merged->perVertex->values[globalVertexIDs[i]] = scalars[i];
       }
+
+      std::cout << "merging in " << prettyNumber(mesh->triangles.size()) << " triangles" << std::endl;
+      for (int i=0;i<mesh->triangles.size();i++) {
+        auto in = mesh->triangles[i];
+        if (!(i % 100000)) { std::cout << "." << std::flush; };
+        UMesh::Triangle out;
+        translate((uint32_t*)&out,(const uint32_t*)&in,3,mesh->vertices,fileID);
+        merged->triangles.push_back(out);
+      }
+      std::cout << std::endl;
+
+      std::cout << "merging in " << prettyNumber(mesh->quads.size()) << " quads" << std::endl;
+      for (int i=0;i<mesh->quads.size();i++) {
+        auto in = mesh->quads[i];
+        if (!(i % 100000)) { std::cout << "." << std::flush; };
+        UMesh::Quad out;
+        translate((uint32_t*)&out,(const uint32_t*)&in,4,mesh->vertices,fileID);
+        merged->quads.push_back(out);
+      }
+      std::cout << std::endl;
+
+
       // for (auto in : mesh->tets) {
       std::cout << "merging in " << prettyNumber(meta.tets) << " out of " << prettyNumber(mesh->tets.size()) << " tets" << std::endl;
       for (int i=0;i<meta.tets;i++) {
@@ -240,6 +282,8 @@ namespace umesh {
         timeStep = atoi(av[++i]);
       else if (arg == "-var" || arg == "--variable")
         variable = av[++i];
+      else if (arg == "-surf" || arg == "--surface-mesh")
+        surfMeshName = av[++i];
       else if (arg == "-o")
         outFileName = av[++i];
       else if (arg[0] != '-')
@@ -272,6 +316,12 @@ namespace umesh {
         break;
 
     mesh.merged->finalize();
+
+    if (surfMeshName != "") {
+      UMesh::SP surf = io::UGrid64Loader::load(surfMeshName);
+      mesh.addMesh(surf);
+    }
+      
     
     std::cout << "done all parts, saving output to "
               << outFileName << std::endl;

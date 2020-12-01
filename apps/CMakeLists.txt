@@ -118,7 +118,16 @@ target_link_libraries(umeshPartitionObjectSpace
   umesh
   )
 
-
+# ------------------------------------------------------------------
+# no computations at all - just dumps the mesh that's implicit in the
+# input umesh, and dumps it in obj format (other prims get ignored)
+# ------------------------------------------------------------------
+add_executable(umeshDumpSurfaceMesh
+  dumpSurfaceMesh.cpp
+  )
+target_link_libraries(umeshDumpSurfaceMesh
+  umesh
+  )
 
 # ------------------------------------------------------------------
 # computes faces, and face-connectiviy information, for a umesh; once
