@@ -21,6 +21,7 @@
 #include "umesh/io/ugrid32.h"
 #include "umesh/io/UMesh.h"
 #include "umesh/RemeshHelper.h"
+#include "umesh/extractSurfaceMesh.h"
 #include <algorithm>
 
 namespace umesh {
@@ -48,17 +49,7 @@ namespace umesh {
           inMesh->quads.empty())
         throw std::runtime_error("umesh does not contain any surface elements...");
 
-      UMesh::SP outMesh = std::make_shared<UMesh>();
-      RemeshHelper indexer(*outMesh);
-
-      for (auto prim : inMesh->triangles) {
-        indexer.translate((uint32_t*)&prim,sizeof(prim)/sizeof(int),inMesh);
-        outMesh->triangles.push_back(prim);
-      }
-      for (auto prim : inMesh->quads) {
-        indexer.translate((uint32_t*)&prim,sizeof(prim)/sizeof(int),inMesh);
-        outMesh->quads.push_back(prim);
-      }
+      UMesh::SP outMesh = extractSurfaceMesh(inMesh);
 
       std::cout << "extracted surface of " << outMesh->toString() << std::endl;
       std::cout << "... saving (in OBJ format) to " << outFileName << std::endl;
@@ -67,9 +58,6 @@ namespace umesh {
         out << "v " << vtx.x << " " << vtx.y << " " << vtx.z << std::endl;
       for (auto idx : outMesh->triangles)
         out << "f " << (idx.x+1) << " " << (idx.y+1) << " " << (idx.z+1) << std::endl;
-      // for (auto idx : outMesh->quads)
-      //   out << "f " << (idx.x+1) << " " << (idx.y+1)
-      //       << " " << (idx.z+1) << " " << (idx.w+1) << std::endl;
       std::cout << "... done" << std::endl;
     }
     catch (std::exception &e) {
