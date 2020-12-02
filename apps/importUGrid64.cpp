@@ -95,7 +95,9 @@ namespace umesh {
     
     std::cout << "loading off from " << ugridFileName << " + " << scalarsFileName << std::endl;
     UMesh::SP in = io::UGrid64Loader::load(ugridFileName,scalarsFileName);
-    
+    if (scalarsFileName == "")
+      for (size_t i=0;i<in->vertices.size();i++)
+        in->vertexTag.push_back(i);
     std::cout << "done loading, found " << in->toString() << std::endl;
     
     in->saveTo(outFileName);
