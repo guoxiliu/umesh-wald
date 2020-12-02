@@ -152,7 +152,8 @@ namespace umesh {
         translate((uint32_t*)&out,(const uint32_t*)&in,3,mesh->vertices,fileID);
         merged->triangles.push_back(out);
       }
-      std::cout << std::endl;
+      if (!mesh->triangles.empty()) 
+        std::cout << std::endl;
 
       std::cout << "merging in " << prettyNumber(mesh->quads.size()) << " quads" << std::endl;
       for (int i=0;i<mesh->quads.size();i++) {
@@ -162,7 +163,8 @@ namespace umesh {
         translate((uint32_t*)&out,(const uint32_t*)&in,4,mesh->vertices,fileID);
         merged->quads.push_back(out);
       }
-      std::cout << std::endl;
+      if (!mesh->quads.empty()) 
+        std::cout << std::endl;
 
 
       // for (auto in : mesh->tets) {
