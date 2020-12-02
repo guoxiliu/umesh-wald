@@ -36,8 +36,8 @@ namespace umesh {
   /*! variable to load in */
   std::string variable = "";
 
-  /*! variable to load in */
-  std::string surfMeshName = "";
+  // /*! variable to load in */
+  // std::string surfMeshName = "";
   
   struct MergedMesh {
 
@@ -59,48 +59,10 @@ namespace umesh {
       std::cout << "reading time step " << timeStep
                 << " from " << scalarsFileName << std::endl;
 
-      // Fun3DScalarsReader reader(scalarsFileName);
-      // reader.readTimeStep(scalars,variable,timeStep);
       scalars = io::fun3d::readTimeStep(scalarsFileName,variable,timeStep,
                                         &globalVertexIDs);
-      // globalVertexIDs = reader.globalVertexIDs;
-      
-    //   std::ifstream file(scalarsFileName,std::ios::binary);
-    //   if (!file.good())
-    //     throw std::runtime_error("error opening scalars file....");
-      
-    //   scalars.resize(mesh->vertices.size());
-    //   size_t numBytes = sizeof(float)*mesh->vertices.size();
-
-    //   file.seekg(timeStep*numBytes,
-    //              timeStep<0
-    //              ? std::ios::end
-    //              : std::ios::beg);
-      
-    //   file.read((char*)scalars.data(),numBytes);
-    //   if (!file) std::cout << "FILE INVALID" << std::endl;
-    //   if (!file.good())
-    //     throw std::runtime_error("error reading scalars....");
-    //   std::cout << "read " << prettyNumber(scalars.size())
-    //             << " scalars (first one is " << scalars[0] << ")" << std::endl;
     }
 
-    void addMesh(UMesh::SP mesh)
-    {
-      std::cout << "merging in " << prettyNumber(mesh->triangles.size()) << " triangles" << std::endl;
-      for (auto in : mesh->triangles) {
-        UMesh::Triangle out;
-        translate((uint32_t*)&out,(const uint32_t*)&in,3,mesh->vertices,-1);
-        merged->triangles.push_back(out);
-      }
-      std::cout << "merging in " << prettyNumber(mesh->quads.size()) << " quads" << std::endl;
-      for (auto in : mesh->quads) {
-        UMesh::Quad out;
-        translate((uint32_t*)&out,(const uint32_t*)&in,4,mesh->vertices,-1);
-        merged->quads.push_back(out);
-      }
-    }
-    
     bool addPart(int fileID)
     {
       std::cout << "----------- part " << fileID << " -----------" << std::endl;
@@ -284,8 +246,8 @@ namespace umesh {
         timeStep = atoi(av[++i]);
       else if (arg == "-var" || arg == "--variable")
         variable = av[++i];
-      else if (arg == "-surf" || arg == "--surface-mesh")
-        surfMeshName = av[++i];
+      // else if (arg == "-surf" || arg == "--surface-mesh")
+      //   surfMeshName = av[++i];
       else if (arg == "-o")
         outFileName = av[++i];
       else if (arg[0] != '-')
@@ -319,10 +281,10 @@ namespace umesh {
 
     mesh.merged->finalize();
 
-    if (surfMeshName != "") {
-      UMesh::SP surf = io::UGrid64Loader::load(surfMeshName);
-      mesh.addMesh(surf);
-    }
+    // if (surfMeshName != "") {
+    //   UMesh::SP surf = io::UGrid64Loader::load(surfMeshName);
+    //   mesh.addMesh(surf);
+    // }
       
     
     std::cout << "done all parts, saving output to "

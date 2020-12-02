@@ -18,7 +18,7 @@
    input umesh, and dumps it in obj format (other prims get
    ignored) */ 
 
-#include "umesh/io/ugrid32.h"
+#include "umesh/io/ugrid64.h"
 #include "umesh/io/UMesh.h"
 #include "umesh/RemeshHelper.h"
 #include "umesh/extractSurfaceMesh.h"
@@ -26,25 +26,65 @@
 
 namespace umesh {
 
- extern "C" int main(int ac, char **av)
+  typedef enum { INVALID, UMESH, OBJ } Format;
+
+  Format formatFromFileName(const std::string &fileName)
+  {
+    if (fileName.substr(fileName.size()-4) == ".obj") return OBJ;
+    if (fileName.substr(fileName.size()-6) == ".umesh") return UMESH;
+    return INVALID;
+  }
+  
+  void saveToOBJ(const std::string &outFileName, UMesh::SP mesh)
+  {
+    std::cout << "... saving (in OBJ format) to " << outFileName << std::endl;
+    std::ofstream out(outFileName);
+    for (auto vtx : mesh->vertices)
+      out << "v " << vtx.x << " " << vtx.y << " " << vtx.z << std::endl;
+    for (auto idx : mesh->triangles)
+      out << "f " << (idx.x+1) << " " << (idx.y+1) << " " << (idx.z+1) << std::endl;
+    std::cout << "... done" << std::endl;
+  }
+
+  UMesh::SP load(const std::string &fileName)
+  {
+    if (fileName.substr(fileName.size()-6) == ".umesh")
+      return UMesh::loadFrom(fileName);
+    
+    if (fileName.substr(fileName.size()-8) == ".ugrid64")
+      return io::UGrid64Loader::load(fileName);
+
+    throw std::runtime_error("could not determine input format"
+                             " (only supporting ugrid64 or umesh for now)");
+  }
+  
+  extern "C" int main(int ac, char **av)
   {
     try {
       std::string inFileName;
       std::string outFileName;
+      Format format = INVALID;
 
       for (int i = 1; i < ac; i++) {
         const std::string arg = av[i];
         if (arg == "-o")
           outFileName = av[++i];
+        else if (arg == "--obj")
+          format = OBJ;
+        else if (arg == "--umesh")
+          format = UMESH;
         else if (arg[0] != '-')
           inFileName = arg;
         else {
-          throw std::runtime_error("./umeshDumpSurfaceMesh <in.umesh> -o <out.obj>");
+          throw std::runtime_error("./umeshDumpSurfaceMesh <in.umesh> [--obj|--umesh] -o <out.obj|.umesh>");
         }
       }
+
+      if (format == INVALID)
+        format = formatFromFileName(outFileName);
       
       std::cout << "loading umesh from " << inFileName << std::endl;
-      UMesh::SP inMesh = io::loadBinaryUMesh(inFileName);
+      UMesh::SP inMesh = load(inFileName);
       if (inMesh->triangles.empty() &&
           inMesh->quads.empty())
         throw std::runtime_error("umesh does not contain any surface elements...");
@@ -52,13 +92,16 @@ namespace umesh {
       UMesh::SP outMesh = extractSurfaceMesh(inMesh);
 
       std::cout << "extracted surface of " << outMesh->toString() << std::endl;
-      std::cout << "... saving (in OBJ format) to " << outFileName << std::endl;
-      std::ofstream out(outFileName);
-      for (auto vtx : outMesh->vertices)
-        out << "v " << vtx.x << " " << vtx.y << " " << vtx.z << std::endl;
-      for (auto idx : outMesh->triangles)
-        out << "f " << (idx.x+1) << " " << (idx.y+1) << " " << (idx.z+1) << std::endl;
-      std::cout << "... done" << std::endl;
+      switch (format) {
+      case OBJ:
+        saveToOBJ(outFileName,outMesh);
+        break;
+      case UMESH:
+        outMesh->saveTo(outFileName);
+        break;
+      default:
+        throw std::runtime_error("invalid/unsupported format!?");
+      }
     }
     catch (std::exception &e) {
       std::cerr << "fatal error " << e.what() << std::endl;

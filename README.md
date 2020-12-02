@@ -110,11 +110,13 @@ should produce an obj file that looks like this (ca 19M tris, rendered w/ ospray
 
 ![pic of iso-surface](docs/png/lander-small-iso-0.2.jpg)
 
-## Dump Surface Mesh (in OBJ format)
+## `extractSurfaceMesh` - Extract surface mesh (tris and quads) from a mixed surface/volumetric mesh
 
-Simple tool that read in a umesh file, and dumps all triangles and
-quads in this umesh to a OBJ file (all other prim types get
-ignored). Mostly for debugging.
+Simple tool that read in a umesh file, extracts all surface elements
+into a new mesh (unused vertices get removed), and stores that in obj
+or umesh format.
+
+Also available programmatically via `umesh::extractSurfaceSurfaceMesh(mesh)`.
 
 ## Compute Shared-Face Connectivity
 

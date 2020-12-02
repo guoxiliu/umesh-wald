@@ -122,10 +122,10 @@ target_link_libraries(umeshPartitionObjectSpace
 # no computations at all - just dumps the mesh that's implicit in the
 # input umesh, and dumps it in obj format (other prims get ignored)
 # ------------------------------------------------------------------
-add_executable(umeshDumpSurfaceMesh
-  dumpSurfaceMesh.cpp
+add_executable(umeshExtractSurfaceMesh
+  extractSurfaceMesh.cpp
   )
-target_link_libraries(umeshDumpSurfaceMesh
+target_link_libraries(umeshExtractSurfaceMesh
   umesh
   )
 
