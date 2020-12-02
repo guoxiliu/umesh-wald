@@ -274,9 +274,13 @@ namespace umesh {
       ss << "#hexes : " << prettyNumber(hexes.size()) << std::endl;
       if  (!bounds.empty())
         ss << "bounds : " << bounds << std::endl;
-      if (perVertex)
-        ss << "values : " << getValueRange() << std::endl;
-      else
+      if (perVertex) {
+        range1f valueRange = getValueRange();
+        if (valueRange.lower > valueRange.upper)
+          ss << "values : yes (range not yet computed)" << std::endl;
+        else
+          ss << "values : " << valueRange << std::endl;
+      } else
         ss << "values : <none>" << std::endl;
     }
     return ss.str();
