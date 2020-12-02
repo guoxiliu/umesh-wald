@@ -78,15 +78,19 @@ namespace umesh {
       else if (arg == "-o")
         outFileName = av[++i];
       else if (arg[0] != '-') {
-        if (ugridFileName == "") ugridFileName = arg;
-        else if (scalarsFileName == "") scalarsFileName = arg;
-        else usage("more than two fiel names specified!?");
+        if (ugridFileName == "")
+          ugridFileName = arg;
+        else if (scalarsFileName == "")
+          scalarsFileName = arg;
+        else
+          usage("more than two file names specified!?");
       } else
         usage("unknown cmd-line arg '"+arg+"'");
     }
     
     if (ugridFileName == "") usage("no ugrid file specified");
-    if (scalarsFileName == "") usage("no scalars file specified");
+    if (scalarsFileName == "") //usage("no scalars file specified");
+      std::cout << "Warning: no scalars file specified!!!" << std::endl;
     if (outFileName == "") usage("no output file specified");
     
     std::cout << "loading off from " << ugridFileName << " + " << scalarsFileName << std::endl;

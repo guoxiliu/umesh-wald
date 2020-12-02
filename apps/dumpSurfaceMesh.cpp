@@ -67,9 +67,9 @@ namespace umesh {
         out << "v " << vtx.x << " " << vtx.y << " " << vtx.z << std::endl;
       for (auto idx : outMesh->triangles)
         out << "f " << (idx.x+1) << " " << (idx.y+1) << " " << (idx.z+1) << std::endl;
-      for (auto idx : outMesh->quads)
-        out << "f " << (idx.x+1) << " " << (idx.y+1)
-            << " " << (idx.z+1) << " " << (idx.w+1) << std::endl;
+      // for (auto idx : outMesh->quads)
+      //   out << "f " << (idx.x+1) << " " << (idx.y+1)
+      //       << " " << (idx.z+1) << " " << (idx.w+1) << std::endl;
       std::cout << "... done" << std::endl;
     }
     catch (std::exception &e) {

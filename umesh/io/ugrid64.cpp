@@ -113,7 +113,7 @@ namespace umesh {
               val > +1e20f) {
             std::cout << "Degen vertex " << i << " " << val << std::endl;
           }
-        }
+        } 
 
         result->perVertex->finalize();
       }
