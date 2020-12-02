@@ -235,7 +235,7 @@ namespace umesh {
     for (int i=0;i<4;i++) facets[i].prim.primIdx  = tetIdx;
     for (int i=0;i<4;i++) facets[i].orientation   = 0;
     
-    vec4i tet = mesh.tets[tetIdx];
+    UMesh::Tet tet = mesh.tets[tetIdx];
     facets[0].vertexIdx = { tet.y,tet.w,tet.z,-1 };
     facets[1].vertexIdx = { tet.x,tet.z,tet.w,-1 };
     facets[2].vertexIdx = { tet.x,tet.w,tet.y,-1 };

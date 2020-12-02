@@ -272,7 +272,8 @@ namespace umesh {
       ss << "#pyrs  : " << prettyNumber(pyrs.size()) << std::endl;
       ss << "#wedges: " << prettyNumber(wedges.size()) << std::endl;
       ss << "#hexes : " << prettyNumber(hexes.size()) << std::endl;
-      ss << "bounds : " << bounds << std::endl;
+      if  (!bounds.empty())
+        ss << "bounds : " << bounds << std::endl;
       if (perVertex)
         ss << "values : " << getValueRange() << std::endl;
       else

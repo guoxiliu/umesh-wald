@@ -26,13 +26,18 @@ namespace umesh {
   struct RemeshHelper {
     RemeshHelper(UMesh &target);
 
+    /*! find ID of given vertex in target mesh (if it already exists),a
+      nd return it; otherwise add vertex to target mesh, and return
+      new ID */
+    uint32_t getID(const vec3f &v);
+    
     /*! given a vertex v, return its ID in the target mesh's vertex
       array (if present), or add it (if not). To afterwards allow the
       using libnray to look up which of the inptu vertices ended up
       where we also allow to specify a vertex "tag" for each input
       vertices. meshes should only ever get built with *either* this
       functoin of the one that uses a float scalar, not mixed */
-    uint32_t getID(const vec3f &v, size_t tag=0);
+    uint32_t getID(const vec3f &v, size_t tag);
 
     /*! given a vertex v and associated per-vertex scalar value s,
       return its ID in the target mesh's vertex array (if present), or

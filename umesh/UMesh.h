@@ -102,23 +102,84 @@ namespace umesh {
     range1f valueRange;
   };
 
-  typedef vec4i Tet;
-  typedef vec3i Triangle;
-  typedef vec4i Quad;
-    
-  // struct Tet {
-  //   inline Tet() {}
-  //   inline Tet(int v0, int v1, int v2, int v3)
-  //     : x(v0), y(v1), z(v2), w(v3)
-  //   {}
-  //   /*! array operator, assuming VTK ordering (see windingOrder.png
-  //     file for illustration) */
-  //   inline const int &operator[](int i) const {return ((int*)this)[i]; }
-  //   inline int &operator[](int i){return ((int*)this)[i]; }
-  //   int x,y,z,w;
-  // };
+  struct Triangle {
+    enum { numVertices = 3 };
+    inline Triangle() = default;
+    inline Triangle(const Triangle &) = default;
+    inline Triangle(int v0, int v1, int v2)
+      : x(v0), y(v1), z(v2)
+    {}
+    inline Triangle(const vec3i &v)
+      : x(v.x), y(v.y), z(v.z)
+    {}
 
+    inline operator vec3i() const { return vec3i(x,y,z); }
+    
+    /*! array operator, assuming VTK ordering (see windingOrder.png
+      file for illustration) */
+    inline const int &operator[](int i) const {return ((int*)this)[i]; }
+    inline int &operator[](int i){return ((int*)this)[i]; }
+    int x,y,z;
+  };
+
+  struct Quad {
+    enum { numVertices = 4 };
+    inline Quad() = default;
+    inline Quad(const Quad &) = default;
+    inline Quad(int v0, int v1, int v2, int v3)
+      : x(v0), y(v1), z(v2), w(v3)
+    {}
+    inline Quad(const vec4i &v)
+      : x(v.x), y(v.y), z(v.z), w(v.w)
+    {}
+
+    inline operator vec4i() const { return vec4i(x,y,z,w); }
+    
+    /*! array operator, assuming VTK ordering (see windingOrder.png
+      file for illustration) */
+    inline const int &operator[](int i) const {return ((int*)this)[i]; }
+    inline int &operator[](int i){return ((int*)this)[i]; }
+    int x,y,z,w;
+  };
+
+  struct Tet {
+    enum { numVertices = 4 };
+    inline Tet() = default;
+    inline Tet(const Tet &) = default;
+    inline Tet(int v0, int v1, int v2, int v3)
+      : x(v0), y(v1), z(v2), w(v3)
+    {}
+    inline Tet(const vec4i &v)
+      : x(v.x), y(v.y), z(v.z), w(v.w)
+    {}
+
+    inline operator vec4i() const { return vec4i(x,y,z,w); }
+    
+    /*! array operator, assuming VTK ordering (see windingOrder.png
+      file for illustration) */
+    inline const int &operator[](int i) const {return ((int*)this)[i]; }
+    inline int &operator[](int i){return ((int*)this)[i]; }
+    int x,y,z,w;
+  };
+
+  struct Pyr {
+    enum { numVertices = 5 };
+    inline Pyr() = default;
+    inline Pyr(const Pyr &) = default;
+    inline Pyr(int v0, int v1, int v2, int v3, int v4)
+      : base(v0,v1,v2,v3),top(v4)
+    {}
+      
+    /*! array operator, assuming VTK ordering (see windingOrder.png
+      file for illustration) */
+    inline const int &operator[](int i) const {return ((int*)this)[i]; }
+    inline int &operator[](int i){return ((int*)this)[i]; }
+    vec4i base;
+    int top;
+  };
+    
   struct Wedge {
+    enum { numVertices = 6 };
     inline Wedge() {}
     inline Wedge(int v0, int v1, int v2, int v3, int v4, int v5)
       : front(v0,v1,v2),
@@ -132,6 +193,7 @@ namespace umesh {
   };
 
   struct Hex {
+    enum { numVertices = 8 };
     inline Hex() {}
     inline Hex(int v0, int v1, int v2, int v3, int v4, int v5, int v6, int v7)
       : base(v0,v1,v2,v3),
@@ -143,20 +205,6 @@ namespace umesh {
     inline int &operator[](int i){return ((int*)this)[i]; }
     vec4i base;
     vec4i top;
-  };
-    
-  struct Pyr {
-    inline Pyr() {}
-    inline Pyr(int v0, int v1, int v2, int v3, int v4)
-      : base(v0,v1,v2,v3),top(v4)
-    {}
-      
-    /*! array operator, assuming VTK ordering (see windingOrder.png
-      file for illustration) */
-    inline const int &operator[](int i) const {return ((int*)this)[i]; }
-    inline int &operator[](int i){return ((int*)this)[i]; }
-    vec4i base;
-    int top;
   };
     
   /*! basic unstructured mesh class - one set of 3-float vertices, and

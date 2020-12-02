@@ -41,6 +41,22 @@ namespace umesh {
     return ID;
   }
 
+  /*! find ID of given vertex in target mesh (if it already exists),a
+    nd return it; otherwise add vertex to target mesh, and return
+    new ID */
+  uint32_t RemeshHelper::getID(const vec3f &v)
+  {
+    assert(!target.perVertex);
+    auto it = knownVertices.find(v);
+    if (it != knownVertices.end()) {
+      return it->second;
+    }
+    int ID = (int)target.vertices.size();
+    knownVertices[v] = ID;
+    target.vertices.push_back(v);
+    return ID;
+  }
+  
   /*! given a vertex v and associated per-vertex scalar value s,
     return its ID in the target mesh's vertex array (if present), or
     add it (if not). To afterwards allow the using libnray to look
@@ -75,10 +91,14 @@ namespace umesh {
     } else if (!otherMesh->vertexTag.empty()) {
       return getID(otherMesh->vertices[in],
                    otherMesh->vertexTag[in]);
-    } else 
-      throw std::runtime_error("can't translate a vertex from another mesh that has neither scalars not vertex tags");
+    } else {
+      if (target.perVertex)
+        throw std::runtime_error("can't translate a vertex from another mesh that has neither scalars not vertex tags");
+      else
+        return getID(otherMesh->vertices[in]);
+    }
   }
-    
+  
   void RemeshHelper::translate(uint32_t *indices, int N,
                                UMesh::SP otherMesh)
   {
@@ -89,7 +109,7 @@ namespace umesh {
   void RemeshHelper::add(UMesh::SP otherMesh, UMesh::PrimRef primRef)
   {
     switch (primRef.type) {
-	       case UMesh::TRI: {
+    case UMesh::TRI: {
       auto prim = otherMesh->triangles[primRef.ID];
       translate((uint32_t*)&prim,3,otherMesh);
       target.triangles.push_back(prim);
@@ -125,4 +145,4 @@ namespace umesh {
     }
   }
   
-} // ::tetty
+} // ::umesh
