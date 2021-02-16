@@ -44,7 +44,7 @@ namespace umesh {
       corresponds to the outside facing "shell" faces of the input
       elements (ie, all those that re not shared by two different
       elements. All surface elements in the output mesh will be
-      OUTWARD facing. */
+      INWARD facing. */
   UMesh::SP extractShellFaces(UMesh::SP mesh);
 } // ::umesh
 
@@ -188,11 +188,24 @@ namespace umesh {
     
     UMesh::Pyr pyr = mesh.pyrs[pyrIdx];
     vec4i base = pyr.base;
+#if 0
+    int i0 = pyr.base.x;
+    int i1 = pyr.base.y;
+    int i2 = pyr.base.z;
+    int i3 = pyr.base.w;
+    int i4 = pyr.top;
+    facets[0].vertexIdx = { i0,i1,i4,-1 };
+    facets[0].vertexIdx = { i0,i4,i3,-1 };
+    facets[0].vertexIdx = { i1,i2,i4,-1 };
+    facets[0].vertexIdx = { i3,i4,i2,-1 };
+    facets[4].vertexIdx = { i0,i3,i2,i1 };
+#else
     facets[0].vertexIdx = { pyr.top,base.y,base.x,-1 };
     facets[1].vertexIdx = { pyr.top,base.z,base.y,-1 };
     facets[2].vertexIdx = { pyr.top,base.w,base.z,-1 };
     facets[3].vertexIdx = { pyr.top,base.x,base.w,-1 };
     facets[4].vertexIdx = { base.x,base.y,base.z,base.w };
+#endif
   }
   
   inline 
@@ -213,11 +226,19 @@ namespace umesh {
     int i3 = wedge.back.x;
     int i4 = wedge.back.y;
     int i5 = wedge.back.z;
+#if 0
+    facets[0].vertexIdx = { i0,i1,i2,-1 };
+    facets[1].vertexIdx = { i3,i5,i4,-1 };
+    facets[2].vertexIdx = { i0,i2,i5,i3 };
+    facets[3].vertexIdx = { i1,i4,i5,i2 };
+    facets[4].vertexIdx = { i0,i3,i4,i1 };
+#else
     facets[0].vertexIdx = { i0,i2,i1,-1 };
     facets[1].vertexIdx = { i3,i4,i5,-1 };
     facets[2].vertexIdx = { i0,i3,i5,i2 };
     facets[3].vertexIdx = { i1,i2,i5,i4 };
     facets[4].vertexIdx = { i0,i1,i4,i3 };
+#endif
   }
   
   inline 
@@ -240,12 +261,21 @@ namespace umesh {
     int i5 = hex.top.y;
     int i6 = hex.top.z;
     int i7 = hex.top.w;
+#if 0
+    facets[0].vertexIdx = { i0,i1,i3,i2 };
+    facets[1].vertexIdx = { i4,i5,i6,i7 };
+    facets[2].vertexIdx = { i0,i1,i5,i4 };
+    facets[3].vertexIdx = { i2,i3,i7,i6 };
+    facets[4].vertexIdx = { i1,i2,i6,i5 };
+    facets[5].vertexIdx = { i0,i4,i7,i3 };
+#else
     facets[0].vertexIdx = { i0,i1,i2,i3 };
     facets[1].vertexIdx = { i4,i7,i6,i5 };
     facets[2].vertexIdx = { i0,i4,i5,i1 };
     facets[3].vertexIdx = { i2,i6,i7,i3 };
     facets[4].vertexIdx = { i1,i5,i6,i2 };
     facets[5].vertexIdx = { i0,i3,i7,i4 };
+#endif
   }
   
   inline 

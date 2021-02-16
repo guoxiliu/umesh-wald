@@ -271,13 +271,15 @@ namespace umesh {
                   throw std::runtime_error("./umeshComputeShell <in.umesh> -o <out.shell> [-tribin file.tribin] [--obj <out.obj]");
               }
           }
+          if (outFileName == "")
+            throw std::runtime_error("no output filename specified (-o)");
 
           std::cout << "loading umesh from " << inFileName << std::endl;
           UMesh::SP in = io::loadBinaryUMesh(inFileName);
           if (!in->pyrs.empty() ||
               !in->wedges.empty() ||
               !in->hexes.empty())
-              throw std::runtime_error("umesh contains non-tet elements...");
+            std::cout << "Warning: umesh contains non-tet elements..." << std::endl;
 
           ShellHelper helper(in);
           std::cout << "saving tris and quads in umesh format to " << outFileName << std::endl;
@@ -290,7 +292,7 @@ namespace umesh {
               saveToBTM(btmFileName, helper.out);
           }
       }
-      catch (std::exception e) {
+      catch (std::exception &e) {
           std::cerr << "fatal error " << e.what() << std::endl;
           exit(1);
       }
