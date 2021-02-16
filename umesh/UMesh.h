@@ -178,6 +178,11 @@ namespace umesh {
     int top;
   };
     
+  inline std::ostream &operator<<(std::ostream& out, Pyr p) {
+    out << '(' << p.base << ',' << p.top << ')';
+    return out;
+  }
+
   struct Wedge {
     enum { numVertices = 6 };
     inline Wedge() {}
@@ -191,6 +196,11 @@ namespace umesh {
     inline int &operator[](int i){return ((int*)this)[i]; }
     vec3i front, back;
   };
+
+  inline std::ostream &operator<<(std::ostream& out, Wedge w) {
+    out << '(' << w.front << ',' << w.back << ')';
+    return out;
+  }
 
   struct Hex {
     enum { numVertices = 8 };
@@ -206,6 +216,11 @@ namespace umesh {
     vec4i base;
     vec4i top;
   };
+    
+  inline std::ostream &operator<<(std::ostream& out, Hex h) {
+    out << '(' << h.base << ',' << h.top << ')';
+    return out;
+  }
     
   /*! basic unstructured mesh class - one set of 3-float vertices, and
     one std::vector each for tets, wedges, pyramids, and hexes, all
