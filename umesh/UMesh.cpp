@@ -82,22 +82,31 @@ namespace umesh {
   /*! read from given (binary) stream */
   void UMesh::readFrom(std::istream &in)
   {
+    const size_t bum_magic_old = 0x234235566ULL;
+    bool supportsMultipleAttributes = true;
     size_t magic;
     io::readElement(in,magic);
     if (magic != bum_magic)
-      throw std::runtime_error("wrong magic number in umesh file ...");
+    {
+      if (magic != bum_magic_old)
+        throw std::runtime_error("wrong magic number in umesh file ...");
+      supportsMultipleAttributes = false;
+    }
     io::readVector(in,this->vertices,"vertices");
     size_t numPerVertexAttributes = 1;
-    io::readElement(in,numPerVertexAttributes);
+    if (supportsMultipleAttributes)
+      io::readElement(in,numPerVertexAttributes);
     if (numPerVertexAttributes) {
       this->perVertex = std::make_shared<Attribute>();
-      io::readString(in,perVertex->name);
+      if (supportsMultipleAttributes)
+        io::readString(in,perVertex->name);
       io::readVector(in,perVertex->values,"scalars");
       this->perVertex->finalize();
     }
       
     size_t numPerElementAttributes = 0;
-    io::readElement(in,numPerElementAttributes);
+    if (supportsMultipleAttributes)
+      io::readElement(in,numPerElementAttributes);
     assert(numPerElementAttributes == 0);
     
     io::readVector(in,this->triangles,"triangles");
