@@ -551,7 +551,7 @@ namespace umesh {
                     face.vertexIdx.y,
                     face.vertexIdx.z);
           if (remeshVertices)
-            helper.translate(&tri.x,4,input);
+            helper.translate(&tri.x,3,input);
           output->triangles.push_back(tri);
         } else {
           // NO SWAP
