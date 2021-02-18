@@ -187,9 +187,10 @@ namespace umesh {
       merged.add(tet);
     for (auto pyr : in->pyrs)
       merged.add(pyr);
-    for (auto wedge : in->wedges) {
+    for (auto wedge : in->wedges) 
       merged.add(wedge);
-    }
+    for (auto hex : in->hexes) 
+      merged.add(hex);
     std::cout << "done tetrahedralizing, got "
               << sizeString(merged.out)
               << " from " << sizeString(in) << std::endl;
