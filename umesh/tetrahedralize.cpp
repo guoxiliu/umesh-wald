@@ -57,26 +57,11 @@ namespace umesh {
         }
         out->tets.push_back({tet.x,tet.y,tet.w,tet.z});
       }
-      else
-      // if (volume < 0.f) {
-      //   PING;
-      //   PRINT(a);
-      //   PRINT(b);
-      //   PRINT(c);
-      //   PRINT(d);
-      //   PRINT(volume);
-      //   PRINT(dbg);
-      // }
       out->tets.push_back(tet);
     }
 
     void add(const UMesh::Pyr &pyr, const std::string &dbg="")
     {
-      // PRINT(out->vertices[pyr[0]]);
-      // PRINT(out->vertices[pyr[1]]);
-      // PRINT(out->vertices[pyr[2]]);
-      // PRINT(out->vertices[pyr[3]]);
-      // PRINT(out->vertices[pyr[4]]);
       int base = getCenter({pyr[0],pyr[1],pyr[2],pyr[3]});
       add(UMesh::Tet(pyr[0],pyr[1],base,pyr[4]),dbg+"pyr0");
       add(UMesh::Tet(pyr[1],pyr[2],base,pyr[4]),dbg+"pyr1");
@@ -90,13 +75,6 @@ namespace umesh {
       int center = getCenter({wedge[0],wedge[1],wedge[2],
                               wedge[3],wedge[4],wedge[5]});
 
-      // PRINT(wedge.front);
-      // PRINT(wedge.back);
-      // PRINT(center);
-
-      // for (int i=0;i<6;i++)
-      //   PRINT(out->vertices[wedge[i]]);
-      // PRINT(out->vertices[center]);
       // bottom face to center
       add(UMesh::Pyr(wedge[0],wedge[1],wedge[4],wedge[3],center),"wed1");
       // left face to center
@@ -217,9 +195,10 @@ namespace umesh {
       merged.add(tet);
     for (auto pyr : in->pyrs)
       merged.add(pyr);
-    for (auto wedge : in->wedges) {
+    for (auto wedge : in->wedges) 
       merged.add(wedge);
-    }
+    for (auto hex : in->hexes) 
+      merged.add(hex);
     // ------------------------------------------------------------------
     // now, kll all so-far generated tets in the output mesh, but keep
     // the vertex array...
