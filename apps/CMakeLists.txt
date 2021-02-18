@@ -130,6 +130,17 @@ target_link_libraries(umeshExtractSurfaceMesh
   )
 
 # ------------------------------------------------------------------
+# no computations at all - just dumps the mesh that's implicit in the
+# input umesh, and dumps it in obj format (other prims get ignored)
+# ------------------------------------------------------------------
+add_executable(fixNegativeVolumeElements
+  fixNegativeVolumeElements.cpp
+  )
+target_link_libraries(fixNegativeVolumeElements
+  umesh
+  )
+
+# ------------------------------------------------------------------
 # computes faces, and face-connectiviy information, for a umesh; once
 # via gpu, once via tbb
 # ------------------------------------------------------------------
