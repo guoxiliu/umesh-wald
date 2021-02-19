@@ -317,6 +317,8 @@ namespace umesh {
       merged.add(in->wedges[i]);
     for (size_t i=0;i<std::min((int)in->hexes.size(),ownedHexes);i++)
       merged.add(in->hexes[i]);
+    std::cout << "finalizing..." << std::endl;
+    merged.out->finalize();
     std::cout << "done tetrahedralizing (second stage), got "
               << sizeString(merged.out)
               << " from " << sizeString(in) << std::endl;
@@ -337,6 +339,8 @@ namespace umesh {
       merged.add(wedge);
     for (auto hex : in->hexes) 
       merged.add(hex);
+    std::cout << "finalizing..." << std::endl;
+    merged.out->finalize();
     std::cout << "done tetrahedralizing curved elements (pass through for flat), got "
               << sizeString(merged.out)
               << " from " << sizeString(in) << std::endl;
