@@ -25,12 +25,14 @@ namespace umesh {
     if (error != "")
       std::cerr << "Error : " << error  << "\n\n";
 
-    std::cout << "Usage: ./umeshTetrahedralize <in.umesh> -o <out.umesh> [--skip-actual-tets]" << std::endl;;
+    std::cout << "Usage: ./umeshTetrahedralize <in.umesh> -o <out.umesh> [--skip-actual-tets] [--keep-flat]" << std::endl;;
+    std::cout << "--keep-flat: elements with all flat sides get passed throguh w/o tetraherdalization" << std::endl;
     exit (error != "");
   };
   
   extern "C" int main(int ac, char **av)
   {
+    bool maintainFlatElements = false;
     std::string inFileName;
     std::string outFileName;
     /*! if enabled, we'll only save the tets that _we_ created, not
@@ -42,6 +44,8 @@ namespace umesh {
         usage();
       else if (arg == "-o")
         outFileName = av[++i];
+      else if (arg == "--maintain-flat-elements" || arg == "--keep-flat")
+        maintainFlatElements = true;
       else if (arg == "--skip-actual-tets")
         skipActualTets = true;
       else if (arg[0] != '-')
@@ -68,7 +72,10 @@ namespace umesh {
       std::cout << UMESH_TERMINAL_DEFAULT << std::endl;
     }
     
-    UMesh::SP out = tetrahedralize(in);
+    UMesh::SP out
+      = maintainFlatElements
+      ? tetrahedralize_maintainFlatElements(in)
+      : tetrahedralize(in);
     std::cout << "done all prims, saving output to " << outFileName << std::endl;
     // PRINT(prettyNumber(out->tets.size()));
     // PRINT(prettyNumber(out->pyrs.size()));

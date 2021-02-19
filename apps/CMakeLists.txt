@@ -133,10 +133,10 @@ target_link_libraries(umeshExtractSurfaceMesh
 # no computations at all - just dumps the mesh that's implicit in the
 # input umesh, and dumps it in obj format (other prims get ignored)
 # ------------------------------------------------------------------
-add_executable(fixNegativeVolumeElements
+add_executable(umeshFixNegativeVolumeElements
   fixNegativeVolumeElements.cpp
   )
-target_link_libraries(fixNegativeVolumeElements
+target_link_libraries(umeshFixNegativeVolumeElements
   umesh
   )
 

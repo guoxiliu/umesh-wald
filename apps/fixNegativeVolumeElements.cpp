@@ -26,6 +26,37 @@
 
 namespace umesh {
 
+  int numSwaps_tets = 0;
+  int numSwaps_pyrs = 0;
+  int numSwaps_wedges = 0;
+  int numSwaps_hexes = 0;
+
+  void ping()
+  {
+    printf("\rnum swaps: t=%i, p=%i, w=%i, h=%i\t\t",
+           numSwaps_tets,
+           numSwaps_pyrs,
+           numSwaps_wedges,
+           numSwaps_hexes);
+  }
+  
+  void swappingTet()
+  {
+    numSwaps_tets++; ping();
+  }
+  void swappingPyr()
+  {
+    numSwaps_pyrs++; ping();
+  }
+  void swappingWedge()
+  {
+    numSwaps_wedges++; ping();
+  }
+  void swappingHex()
+  {
+    numSwaps_hexes++; ping();
+  }
+
   inline float volume(const vec3f &v0,
                       const vec3f &v1,
                       const vec3f &v2,
@@ -41,8 +72,10 @@ namespace umesh {
     vec3f v2 = mesh->vertices[tet[2]];
     vec3f v3 = mesh->vertices[tet[3]];
 
-    if (volume(v0,v1,v2,v3) < 0.f)
+    if (volume(v0,v1,v2,v3) < 0.f) {
       std::swap(tet.x,tet.y);
+      swappingTet();
+    }
   }
   
   void fixup(UMesh::SP mesh, UMesh::Pyr &pyr)
@@ -57,6 +90,7 @@ namespace umesh {
     if (volume(v0,v1,b,v4) < 0.f) {
       std::swap(pyr.base.x,pyr.base.y);
       std::swap(pyr.base.z,pyr.base.w);
+      swappingPyr();
     }
   }
   
@@ -74,6 +108,7 @@ namespace umesh {
       std::swap(wedge[0],wedge[3]);
       std::swap(wedge[1],wedge[4]);
       std::swap(wedge[2],wedge[5]);
+      swappingWedge();
     }
   }
 
@@ -95,6 +130,7 @@ namespace umesh {
       std::swap(hex[1],hex[5]);
       std::swap(hex[2],hex[6]);
       std::swap(hex[3],hex[7]);
+      swappingHex();
     }
   }
   
@@ -116,10 +152,6 @@ namespace umesh {
         const std::string arg = av[i];
         if (arg == "-o")
           outFileName = av[++i];
-        else if (arg == "--obj" || arg == "-obj")
-          objFileName = av[++i];
-        else if (arg == "--tribin" || arg == "-tribin")
-          btmFileName = av[++i];
         else if (arg[0] != '-')
           inFileName = arg;
         else {
@@ -131,6 +163,7 @@ namespace umesh {
 
       std::cout << "loading umesh from " << inFileName << std::endl;
       UMesh::SP in = io::loadBinaryUMesh(inFileName);
+      std::cout << "flipping negative elements ....\n\n";
       fixNegativeVolumes(in);
 
       io::saveBinaryUMesh(outFileName, in);

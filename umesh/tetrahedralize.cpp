@@ -20,9 +20,10 @@
 namespace umesh {
   struct MergedMesh {
     
-    MergedMesh(UMesh::SP in)
+    MergedMesh(UMesh::SP in, bool passThroughFlatElements=false)
       : in(in),
-        out(std::make_shared<UMesh>())
+        out(std::make_shared<UMesh>()),
+        passThroughFlatElements(passThroughFlatElements)
     {
       out->vertices = in->vertices;
       if (in->perVertex) {
@@ -32,18 +33,49 @@ namespace umesh {
       }
     }
 
+    inline float length(const vec3f v) { return sqrtf(dot(v,v)); }
+    
+    inline float volume(const vec3f &v0,
+                        const vec3f &v1,
+                        const vec3f &v2,
+                        const vec3f &v3)
+    {
+      return dot(v3-v0,cross(v1-v0,v2-v0));
+    }
+                      
+    inline bool flat(const vec3f &v0,
+                     const vec3f &v1,
+                     const vec3f &v2,
+                     const vec3f &v3)
+    {
+      const vec3f n0 = cross(v1-v0,v2-v0);
+      if (length(n0) == 0.f) return false;
+      
+      const vec3f n1 = cross(v2-v0,v3-v0);
+      if (length(n1) == 0.f) return false;
+
+      return dot(n0,n1)/(length(n0)*length(n1)) >= .99f;
+    }
+                      
+    
     void add(const UMesh::Tet &tet, const std::string &dbg="")
     {
-      if (tet.x == tet.y || tet.x == tet.z || tet.x == tet.w
-          || tet.y == tet.z || tet.y == tet.w
-          || tet.z == tet.w)
+      if (tet.x == tet.y ||
+          tet.x == tet.z ||
+          tet.x == tet.w ||
+          tet.y == tet.z ||
+          tet.y == tet.w ||
+          tet.z == tet.w)
+        /* degenerate/flat tet .... so in either case: dump this */
         return;
       vec3f a = out->vertices[tet.x];
       vec3f b = out->vertices[tet.y];
       vec3f c = out->vertices[tet.z];
       vec3f d = out->vertices[tet.w];
       float volume = dot(d-a,cross(b-a,c-a));
-      if (volume == 0.f) return;
+      if (volume == 0.f)
+        /* degenerate/flat - dump this */
+        return;
 
       if (volume < 0.f) {
         static bool warned = false;
@@ -56,12 +88,30 @@ namespace umesh {
           warned = true;
         }
         out->tets.push_back({tet.x,tet.y,tet.w,tet.z});
-      }
-      out->tets.push_back(tet);
+      } else
+        out->tets.push_back(tet);
     }
 
     void add(const UMesh::Pyr &pyr, const std::string &dbg="")
     {
+      if (passThroughFlatElements) {
+        const vec3f v0 = out->vertices[pyr[0]];
+        const vec3f v1 = out->vertices[pyr[1]];
+        const vec3f v2 = out->vertices[pyr[2]];
+        const vec3f v3 = out->vertices[pyr[3]];
+        const vec3f v4 = out->vertices[pyr[4]];
+        if (flat(v0,v1,v2,v3)) {
+          if (volume(v0,v1,v2,v4) < 0.f) {
+            UMesh::Pyr _pyr = pyr;
+            std::swap(_pyr.base.x,_pyr.base.y);
+            std::swap(_pyr.base.z,_pyr.base.w);
+            out->pyrs.push_back(_pyr);
+          } else 
+            out->pyrs.push_back(pyr);
+          // passed this through; done.
+          return;
+        }
+      }
       int base = getCenter({pyr[0],pyr[1],pyr[2],pyr[3]});
       add(UMesh::Tet(pyr[0],pyr[1],base,pyr[4]),dbg+"pyr0");
       add(UMesh::Tet(pyr[1],pyr[2],base,pyr[4]),dbg+"pyr1");
@@ -71,6 +121,28 @@ namespace umesh {
 
     void add(const UMesh::Wedge &wedge)
     {
+      if (passThroughFlatElements) {
+        const vec3f v0 = out->vertices[wedge[0]];
+        const vec3f v1 = out->vertices[wedge[1]];
+        const vec3f v2 = out->vertices[wedge[2]];
+        const vec3f v3 = out->vertices[wedge[3]];
+        const vec3f v4 = out->vertices[wedge[4]];
+        const vec3f v5 = out->vertices[wedge[5]];
+        if (flat(v0,v2,v5,v3) &&
+            flat(v1,v2,v5,v4) &&
+            flat(v0,v1,v4,v3)) {
+          if (volume(v0,v1,v4,v2) < 0.f) {
+            UMesh::Wedge _wedge = wedge;
+            std::swap(_wedge[0],_wedge[3]);
+            std::swap(_wedge[1],_wedge[4]);
+            std::swap(_wedge[2],_wedge[5]);
+            out->wedges.push_back(_wedge);
+          } else 
+            out->wedges.push_back(wedge);
+          // passed this through; done.
+          return;
+        }
+      }
       // newly created points:
       int center = getCenter({wedge[0],wedge[1],wedge[2],
                               wedge[3],wedge[4],wedge[5]});
@@ -89,6 +161,34 @@ namespace umesh {
     
     void add(const UMesh::Hex &hex)
     {
+      if (passThroughFlatElements) {
+        const vec3f v0 = out->vertices[hex[0]];
+        const vec3f v1 = out->vertices[hex[1]];
+        const vec3f v2 = out->vertices[hex[2]];
+        const vec3f v3 = out->vertices[hex[3]];
+        const vec3f v4 = out->vertices[hex[4]];
+        const vec3f v5 = out->vertices[hex[5]];
+        const vec3f v6 = out->vertices[hex[6]];
+        const vec3f v7 = out->vertices[hex[7]];
+        if (flat(v0,v1,v5,v4) &&
+            flat(v1,v2,v6,v5) &&
+            flat(v2,v6,v7,v3) &&
+            flat(v0,v4,v7,v3) &&
+            flat(v4,v5,v6,v7) &&
+            flat(v0,v3,v2,v1)) {
+          if (volume(v0,v1,v2,v5) < 0.f) {
+            UMesh::Hex _hex = hex;
+            std::swap(_hex[0],_hex[4]);
+            std::swap(_hex[1],_hex[5]);
+            std::swap(_hex[2],_hex[6]);
+            std::swap(_hex[3],_hex[7]);
+            out->hexes.push_back(_hex);
+          } else 
+            out->hexes.push_back(hex);
+          // passed this through; done.
+          return;
+        }
+      }
       // newly created points:
       int center = getCenter({hex[0],hex[1],hex[2],hex[3],
                               hex[4],hex[5],hex[6],hex[7]});
@@ -137,12 +237,14 @@ namespace umesh {
     std::map<vec3f,int> vertices;
     std::map<std::vector<int>,int> newVertices;
     UMesh::SP in, out;
+    /*! if true, then we'll tessellate only curved elements */
+    bool passThroughFlatElements;
   };
 
   /*! tetrahedralize a given input mesh; in a way that non-triangular
     faces (from wedges, pyramids, and hexes) will always be
     subdividied exactly the same way even if that same face is used
-    by another elemnt with different vertex order
+    by another element with different vertex order
   
     Notes:
 
@@ -221,5 +323,24 @@ namespace umesh {
     return merged.out;
   }
 
+
+  /*! same as tetrahedralize(), but chop up ONLY elements with curved
+      sides, and pass through all those that have flat sides. */
+  UMesh::SP tetrahedralize_maintainFlatElements(UMesh::SP in)
+  {
+    MergedMesh merged(in,/*pass through flat elements:*/true);
+    for (auto tet : in->tets)
+      merged.add(tet);
+    for (auto pyr : in->pyrs)
+      merged.add(pyr);
+    for (auto wedge : in->wedges) 
+      merged.add(wedge);
+    for (auto hex : in->hexes) 
+      merged.add(hex);
+    std::cout << "done tetrahedralizing curved elements (pass through for flat), got "
+              << sizeString(merged.out)
+              << " from " << sizeString(in) << std::endl;
+    return merged.out;
+  }
   
 } // ::umesh
