@@ -18,6 +18,21 @@
 
 namespace umesh {
 
+#ifndef PRINT
+#ifdef __CUDA_ARCH__
+# define PRINT(va) /**/
+# define PING /**/
+#else
+# define PRINT(var) std::cout << #var << "=" << var << std::endl;
+#ifdef __WIN32__
+# define PING std::cout << __FILE__ << "::" << __LINE__ << ": " << __FUNCTION__ << std::endl;
+#else
+# define PING std::cout << __FILE__ << "::" << __LINE__ << ": " << __PRETTY_FUNCTION__ << std::endl;
+#endif
+#endif
+#endif
+
+  
   /*! perform some sanity checking of the given mesh (checking indices
     are valid, etc) */
   void sanityCheck(UMesh::SP mesh)
@@ -31,8 +46,91 @@ namespace umesh {
     
     for (auto p : mesh->tets) {
       for (int i=0;i<p.numVertices;i++) {
-        if (p[i] < 0) throw std::runtime_error("#check: mesh has negative index!?");
-        if (p[i] >= mesh->tets.size()) throw std::runtime_error("#check: mesh has index greater than vertex array size!?");
+        if (p[i] < 0) {
+          PRINT(mesh->vertices.size());
+          PRINT(p);
+          throw std::runtime_error("#check: mesh has negative index!?");
+        }
+        if (p[i] >= mesh->vertices.size()) {
+          PRINT(mesh->vertices.size());
+          PRINT(p);
+          throw std::runtime_error("#check: mesh has index greater than vertex array size!?");
+        }
+      }
+    }
+
+    for (auto p : mesh->pyrs) {
+      for (int i=0;i<p.numVertices;i++) {
+        if (p[i] < 0) {
+          PRINT(mesh->vertices.size());
+          PRINT(p);
+          throw std::runtime_error("#check: mesh has negative index!?");
+        }
+        if (p[i] >= mesh->vertices.size()) {
+          PRINT(mesh->vertices.size());
+          PRINT(p);
+           throw std::runtime_error("#check: mesh has index greater than vertex array size!?");
+        }
+      }
+    }
+
+    for (auto p : mesh->wedges) {
+      for (int i=0;i<p.numVertices;i++) {
+        if (p[i] < 0) {
+          PRINT(mesh->vertices.size());
+          PRINT(p);
+          throw std::runtime_error("#check: mesh has negative index!?");
+        }
+        if (p[i] >= mesh->vertices.size())  {
+          PRINT(mesh->vertices.size());
+          PRINT(p);
+          throw std::runtime_error("#check: mesh has index greater than vertex array size!?");
+        }
+      }
+    }
+
+    for (auto p : mesh->hexes) {
+      for (int i=0;i<p.numVertices;i++) {
+        if (p[i] < 0)  {
+          PRINT(mesh->vertices.size());
+          PRINT(p);
+          throw std::runtime_error("#check: mesh has negative index!?");
+        }
+        if (p[i] >= mesh->vertices.size()) {
+          PRINT(mesh->vertices.size());
+          PRINT(p);
+           throw std::runtime_error("#check: mesh has index greater than vertex array size!?");
+        }
+      }
+    }
+
+    for (auto p : mesh->triangles) {
+      for (int i=0;i<p.numVertices;i++) {
+        if (p[i] < 0)  {
+          PRINT(mesh->vertices.size());
+          PRINT(p);
+          throw std::runtime_error("#check: mesh has negative index!?");
+        }
+        if (p[i] >= mesh->vertices.size()) {
+          PRINT(mesh->vertices.size());
+          PRINT(p);
+           throw std::runtime_error("#check: mesh has index greater than vertex array size!?");
+        }
+      }
+    }
+      
+    for (auto p : mesh->quads) {
+      for (int i=0;i<p.numVertices;i++) {
+        if (p[i] < 0) {
+          PRINT(mesh->vertices.size());
+          PRINT(p);
+           throw std::runtime_error("#check: mesh has negative index!?");
+        }
+        if (p[i] >= mesh->quads.size()) {
+          PRINT(mesh->vertices.size());
+          PRINT(p);
+           throw std::runtime_error("#check: mesh has index greater than vertex array size!?");
+        }
       }
     }
   }
