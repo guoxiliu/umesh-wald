@@ -186,6 +186,8 @@ namespace umesh {
           } else 
             out->hexes.push_back(hex);
           // passed this through; done.
+          for (int i=0;i<8;i++)
+            assert(out->hexes.back()[i] >= 0);
           return;
         }
       }

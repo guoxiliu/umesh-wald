@@ -117,8 +117,14 @@ namespace umesh {
     
     /*! array operator, assuming VTK ordering (see windingOrder.png
       file for illustration) */
-    inline const int &operator[](int i) const {return ((int*)this)[i]; }
-    inline int &operator[](int i){return ((int*)this)[i]; }
+    inline const int &operator[](int i) const {
+      assert(i>=0 && i<numVertices);
+      return ((int*)this)[i];
+    }
+    inline int &operator[](int i){
+      assert(i>=0 && i<numVertices);
+      return ((int*)this)[i];
+    }
     int x,y,z;
   };
 
@@ -137,8 +143,14 @@ namespace umesh {
     
     /*! array operator, assuming VTK ordering (see windingOrder.png
       file for illustration) */
-    inline const int &operator[](int i) const {return ((int*)this)[i]; }
-    inline int &operator[](int i){return ((int*)this)[i]; }
+    inline const int &operator[](int i) const {
+      assert(i>=0 && i<numVertices);
+      return ((int*)this)[i];
+    }
+    inline int &operator[](int i){
+      assert(i>=0 && i<numVertices);
+      return ((int*)this)[i];
+    }
     int x,y,z,w;
   };
 
@@ -157,8 +169,14 @@ namespace umesh {
     
     /*! array operator, assuming VTK ordering (see windingOrder.png
       file for illustration) */
-    inline const int &operator[](int i) const {return ((int*)this)[i]; }
-    inline int &operator[](int i){return ((int*)this)[i]; }
+    inline const int &operator[](int i) const {
+      assert(i>=0 && i<numVertices);
+      return ((int*)this)[i];
+    }
+    inline int &operator[](int i){
+      assert(i>=0 && i<numVertices);
+      return ((int*)this)[i];
+    }
     int x,y,z,w;
   };
 
@@ -172,8 +190,14 @@ namespace umesh {
       
     /*! array operator, assuming VTK ordering (see windingOrder.png
       file for illustration) */
-    inline const int &operator[](int i) const {return ((int*)this)[i]; }
-    inline int &operator[](int i){return ((int*)this)[i]; }
+    inline const int &operator[](int i) const {
+      assert(i>=0 && i<numVertices);
+      return ((int*)this)[i];
+    }
+    inline int &operator[](int i){
+      assert(i>=0 && i<numVertices);
+      return ((int*)this)[i];
+    }
     vec4i base;
     int top;
   };
@@ -192,8 +216,14 @@ namespace umesh {
     {}
     /*! array operator, assuming VTK ordering (see windingOrder.png
       file for illustration) */
-    inline const int &operator[](int i) const {return ((int*)this)[i]; }
-    inline int &operator[](int i){return ((int*)this)[i]; }
+    inline const int &operator[](int i) const {
+      assert(i>=0 && i<numVertices);
+      return ((int*)this)[i];
+    }
+    inline int &operator[](int i){
+      assert(i>=0 && i<numVertices);
+      return ((int*)this)[i];
+    }  
     vec3i front, back;
   };
 
@@ -211,8 +241,14 @@ namespace umesh {
     {}
     /*! array operator, assuming VTK ordering (see windingOrder.png
       file for illustration) */
-    inline const int &operator[](int i) const {return ((int*)this)[i]; }
-    inline int &operator[](int i){return ((int*)this)[i]; }
+    inline const int &operator[](int i) const {
+      assert(i>=0 && i<numVertices);
+      return ((int*)this)[i];
+    }
+    inline int &operator[](int i){
+      assert(i>=0 && i<numVertices);
+      return ((int*)this)[i];
+    }
     vec4i base;
     vec4i top;
   };
@@ -325,6 +361,7 @@ namespace umesh {
 
     inline range1f getTetValueRange(const size_t ID) const
     {
+      assert(ID < tets.size());
       const range1f b = range1f()
         .including(perVertex->values[tets[ID].x])
         .including(perVertex->values[tets[ID].y])
@@ -335,6 +372,7 @@ namespace umesh {
     
     inline range1f getPyrValueRange(const size_t ID) const
     {
+      assert(ID < pyrs.size());
       return range1f()
         .including(perVertex->values[pyrs[ID].top])
         .including(perVertex->values[pyrs[ID].base.x])
@@ -345,6 +383,7 @@ namespace umesh {
     
     inline range1f getWedgeValueRange(const size_t ID) const
     {
+      assert(ID < wedges.size());
       return range1f()
         .including(perVertex->values[wedges[ID].front.x])
         .including(perVertex->values[wedges[ID].front.y])
@@ -357,6 +396,7 @@ namespace umesh {
     
     inline range1f getHexValueRange(const size_t ID) const
     {
+      assert(ID < hexes.size());
       const range1f b = range1f()
         .including(perVertex->values[hexes[ID].top.x])
         .including(perVertex->values[hexes[ID].top.y])
@@ -388,6 +428,7 @@ namespace umesh {
 
     inline box3f getTetBounds(const size_t ID) const
     {
+      assert(ID < tets.size());
       const box3f b = box3f()
         .including(vertices[tets[ID].x])
         .including(vertices[tets[ID].y])
@@ -398,6 +439,7 @@ namespace umesh {
     
     inline box3f getPyrBounds(const size_t ID) const
     {
+      assert(ID < pyrs.size());
       return box3f()
         .including(vertices[pyrs[ID].top])
         .including(vertices[pyrs[ID].base.x])
@@ -408,6 +450,7 @@ namespace umesh {
     
     inline box3f getWedgeBounds(const size_t ID) const
     {
+      assert(ID < wedges.size());
       return box3f()
         .including(vertices[wedges[ID].front.x])
         .including(vertices[wedges[ID].front.y])
@@ -419,6 +462,7 @@ namespace umesh {
     
     inline box3f getHexBounds(const size_t ID) const
     {
+      assert(ID < hexes.size());
       const box3f b = box3f()
         .including(vertices[hexes[ID].top.x])
         .including(vertices[hexes[ID].top.y])
