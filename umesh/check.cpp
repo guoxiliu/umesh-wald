@@ -26,11 +26,8 @@ namespace umesh {
     if (mesh->numVolumeElements() == 0)
       std::cout <<"#check - WARNING: "
                 << "num volume elemnts in mesh is 0!?" << std::endl;
-    for (auto pv : mesh->perVertex) {
-      if (!pv) throw std::runtime_error("null vertex set");
-      if (pv->values.size() != mesh->vertices.size())
-        throw std::runtime_error("attribute size doesn't match vertex array size");
-    }
+    if (mesh->perVertex && mesh->perVertex->values.size() != mesh->vertices.size())
+      throw std::runtime_error("attribute size doesn't match vertex array size");
     
     for (auto p : mesh->tets) {
       for (int i=0;i<p.numVertices;i++) {

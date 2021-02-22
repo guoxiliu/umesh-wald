@@ -16,7 +16,6 @@
 
 #include "umesh/io/ugrid32.h"
 #include "umesh/io/UMesh.h"
-#include "umesh/tetrahedralize.h"
 
 namespace umesh {
 
@@ -32,9 +31,6 @@ namespace umesh {
   extern "C" int main(int ac, char **av)
   {
     std::string inFileName;
-    /*! if enabled, we'll only save the tets that _we_ created, not
-        those that were in the file initially */
-    bool skipActualTets = false;
     for (int i=1;i<ac;i++) {
       const std::string arg = av[i];
       if (arg == "-h")

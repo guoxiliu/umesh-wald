@@ -16,7 +16,7 @@
 
 #include "umesh/io/ugrid32.h"
 #include "umesh/io/UMesh.h"
-#include "umesh/tetrahedralize.h"
+#include "umesh/check.h"
 
 namespace umesh {
 
@@ -48,7 +48,7 @@ namespace umesh {
     UMesh::SP in = io::loadBinaryUMesh(inFileName);
 
     std::cout << "UMesh info:\n" << in->toString(false) << std::endl;
-    check(in);
+    sanityCheck(in);
     std::cout << "all sanity checks went through ..." << std::endl;
   }
   
