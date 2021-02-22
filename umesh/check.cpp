@@ -126,7 +126,7 @@ namespace umesh {
           PRINT(p);
            throw std::runtime_error("#check: mesh has negative index!?");
         }
-        if (p[i] >= mesh->quads.size()) {
+        if (p[i] >= mesh->vertices.size()) {
           PRINT(mesh->vertices.size());
           PRINT(p);
            throw std::runtime_error("#check: mesh has index greater than vertex array size!?");
