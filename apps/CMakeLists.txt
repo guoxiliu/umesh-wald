@@ -28,6 +28,15 @@ target_link_libraries(umeshInfo
   )
 
 # ------------------------------------------------------------------
+# same as info, with added sanity checks (valid indices etc)
+# ------------------------------------------------------------------
+add_executable(umeshSanityCheck
+  sanityCheck.cpp
+  )
+target_link_libraries(umeshSanityCheck
+  umesh
+  )
+# ------------------------------------------------------------------
 # import a OFF file to umesh format
 # ------------------------------------------------------------------
 add_executable(umeshImportOFF

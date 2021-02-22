@@ -25,7 +25,8 @@ add_library(umesh
   
   UMesh.h
   UMesh.cpp
-
+  check.cpp
+  
   RemeshHelper.h
   RemeshHelper.cpp
 

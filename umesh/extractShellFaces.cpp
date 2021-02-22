@@ -494,6 +494,7 @@ namespace umesh {
 
   std::vector<SharedFace> computeFaces(UMesh::SP input)
   {
+    assert(input);
     std::chrono::steady_clock::time_point
       begin_inc = std::chrono::steady_clock::now();
     InputMesh mesh;
@@ -508,10 +509,16 @@ namespace umesh {
       + 5 * mesh.numPyrs
       + 5 * mesh.numWedges
       + 6 * mesh.numHexes;
+    if (numFacets == 0)
+      /*! this is critical: without this we'll be getting a crash
+          later on when it tries to access the "last" facet */
+      return {};
+    
     Facet *facets = allocateFacets(numFacets);
     writeFacets(facets,mesh);
     computeUniqueVertexOrder(facets,numFacets);
-    
+
+    PING; PRINT(numFacets);
     // -------------------------------------------------------
     sortFacets(facets,numFacets);
     uint64_t *faceIndices = allocateIndices(numFacets);
@@ -550,8 +557,10 @@ namespace umesh {
                                 original input mesh */
                               bool remeshVertices)
   {
+    assert(input);
     std::vector<SharedFace> faces
       = computeFaces(input);
+    assert(faces.empty() || !input->vertices.empty());
     UMesh::SP output = std::make_shared<UMesh>();
     RemeshHelper helper(*output);
     for (auto &face: faces) {

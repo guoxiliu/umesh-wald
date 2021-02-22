@@ -114,7 +114,7 @@ namespace umesh {
     {}
 
     inline operator vec3i() const { return vec3i(x,y,z); }
-    
+
     /*! array operator, assuming VTK ordering (see windingOrder.png
       file for illustration) */
     inline const int &operator[](int i) const {
@@ -290,6 +290,12 @@ namespace umesh {
 
     /*! return a string of the form "UMesh{#tris=...}" */
     std::string toString(bool compact=true) const;
+    
+    /*! returns total numer of volume elements */
+    inline size_t numVolumeElements() const
+    {
+      return tets.size()+pyrs.size()+wedges.size()+hexes.size();
+    }
     
     /*! print some basic info of this mesh to std::cout */
     void print();
