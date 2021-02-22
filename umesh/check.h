@@ -20,8 +20,11 @@
 
 namespace umesh {
 
+  /* if specified, the sanity checker will ignore 'no volume prims' */
+#define CHECK_FLAG_MESH_IS_SURFACE (1<<0)
+  
   /*! perform some sanity checking of the given mesh (checking indices
     are valid, etc) */
-  void sanityCheck(UMesh::SP umesh);
+  void sanityCheck(UMesh::SP umesh, uint32_t flags = 0);
   
 } // :: umesh

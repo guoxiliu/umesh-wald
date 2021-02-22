@@ -35,12 +35,15 @@ namespace umesh {
   
   /*! perform some sanity checking of the given mesh (checking indices
     are valid, etc) */
-  void sanityCheck(UMesh::SP mesh)
+  void sanityCheck(UMesh::SP mesh, uint32_t flags)
   {
     if (!mesh) throw std::runtime_error("#check: null umesh");
-    if (mesh->numVolumeElements() == 0)
+    if ((mesh->numVolumeElements() == 0)
+        &&
+        !(flags & CHECK_FLAG_MESH_IS_SURFACE)
+        )
       std::cout <<"#check - WARNING: "
-                << "num volume elemnts in mesh is 0!?" << std::endl;
+                << "num volume elements in mesh is 0!?" << std::endl;
     if (mesh->perVertex && mesh->perVertex->values.size() != mesh->vertices.size())
       throw std::runtime_error("attribute size doesn't match vertex array size");
     
