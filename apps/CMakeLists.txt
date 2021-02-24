@@ -139,6 +139,29 @@ target_link_libraries(umeshExtractSurfaceMesh
   )
 
 # ------------------------------------------------------------------
+# computes the outer shell faces of the volume elements (ie, all those
+# faces that are NOT shared between two elements, then dumps those in
+# obj or BTM format)
+# ------------------------------------------------------------------
+add_executable(umeshExtractShell
+  extractShell.cpp
+  )
+target_link_libraries(umeshExtractShell
+  umesh
+  )
+
+# ------------------------------------------------------------------
+# no computations at all - just dumps the mesh that's implicit in the
+# input umesh, and dumps it in obj format (other prims get ignored)
+# ------------------------------------------------------------------
+add_executable(umeshExaToUMesh
+  exaToUMesh.cpp
+  )
+target_link_libraries(umeshExaToUMesh
+  umesh
+  )
+
+# ------------------------------------------------------------------
 # no computations at all - just dumps the mesh that's implicit in the
 # input umesh, and dumps it in obj format (other prims get ignored)
 # ------------------------------------------------------------------

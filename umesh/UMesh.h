@@ -533,5 +533,5 @@ namespace umesh {
   /*! helper functoin for printf debugging - puts the four elemnt
       sizes into a human-readable (short) string*/
   std::string sizeString(UMesh::SP mesh);
-  
-} // ::tetty
+
+} // ::umesh

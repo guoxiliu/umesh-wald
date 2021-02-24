@@ -25,8 +25,8 @@ namespace umesh {
     if (error != "")
       std::cerr << "Error : " << error  << "\n\n";
 
-    std::cout << "Usage: ./umeshTetrahedralize <in.umesh> -o <out.umesh> [--skip-actual-tets] [--keep-flat]" << std::endl;;
-    std::cout << "--keep-flat: elements with all flat sides get passed throguh w/o tetraherdalization" << std::endl;
+    std::cout << "Usage: ./umeshTetrahedralize <in.umesh> -o <out.umesh> [--keep-flat]" << std::endl;;
+    std::cout << "--keep-flat: elements with all flat sides get passed through w/o tetrahedralization" << std::endl;
     exit (error != "");
   };
   
@@ -37,7 +37,6 @@ namespace umesh {
     std::string outFileName;
     /*! if enabled, we'll only save the tets that _we_ created, not
         those that were in the file initially */
-    bool skipActualTets = false;
     for (int i=1;i<ac;i++) {
       const std::string arg = av[i];
       if (arg == "-h")
@@ -46,8 +45,6 @@ namespace umesh {
         outFileName = av[++i];
       else if (arg == "--maintain-flat-elements" || arg == "--keep-flat")
         maintainFlatElements = true;
-      else if (arg == "--skip-actual-tets")
-        skipActualTets = true;
       else if (arg[0] != '-')
         inFileName = arg;
       else

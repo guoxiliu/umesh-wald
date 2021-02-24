@@ -95,6 +95,8 @@ namespace umesh {
     upper = std::max(upper,other.upper);
   }
 
+  struct vec3i;
+  
   /*! namespace for syntax-only parser - this allows to distringuish
     high-level objects such as shapes from objects or transforms,
     but does *not* make any difference between what types of
@@ -112,6 +114,7 @@ namespace umesh {
     typedef float scalar_t;
     vec3f() = default;
     explicit vec3f(float v) : x{v}, y{v}, z{v} { }
+    explicit vec3f(const vec3i &);
     vec3f(float x, float y, float z) : x{x}, y{y}, z{z} { }
     inline float &operator[](int i) { return (&x)[i]; }
     inline const float &operator[](int i) const { return (&x)[i]; }
@@ -123,6 +126,8 @@ namespace umesh {
     vec4f(float v) : x{v}, y{v}, z{v}, w{v} { }
     vec4f(vec3f v, float w) : x{v.x}, y{v.y}, z{v.z}, w{w} { }
     vec4f(float x, float y, float z, float w) : x{x}, y{y}, z{z}, w{w} { }
+    inline float &operator[](int i) { return (&x)[i]; }
+    inline const float &operator[](int i) const { return (&x)[i]; }
     float x, y, z, w;
   };
   struct vec2i {
@@ -197,6 +202,8 @@ namespace umesh {
   inline vec3f operator-(const vec3f& a) { return vec3f(-a.x, -a.y, -a.z); }
   inline vec3f operator-(const vec3f& a, const vec3f& b) { return vec3f(a.x - b.x, a.y - b.y, a.z - b.z); }
   inline vec3f operator+(const vec3f& a, const vec3f& b) { return vec3f(a.x + b.x, a.y + b.y, a.z + b.z); }
+  inline vec4f operator+(const vec4f& a, const vec4f& b) { return vec4f(a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w); }
+
   inline vec3f operator*(const vec3f& a, float b) { return vec3f(a.x * b, a.y * b, a.z * b); }
   inline vec3f operator*(float a, const vec3f& b) { return vec3f(a * b.x, a * b.y, a * b.z); }
   inline vec3f operator*(const vec3f& a, const vec3f& b) { return vec3f(a.x * b.x, a.y * b.y, a.z * b.z); }
@@ -204,6 +211,16 @@ namespace umesh {
   inline vec3f operator*(const mat3f& a, const vec3f& b) { return a.vx * b.x + a.vy * b.y + a.vz * b.z; }
   inline mat3f operator*(const mat3f& a, const mat3f& b) { return mat3f(a * b.vx, a * b.vy, a * b.vz); }
   inline vec3f operator*(const affine3f& a, const vec3f& b) { return a.l * b + a.p; }
+
+
+  inline vec3i operator-(const vec3i& a) { return vec3i(-a.x, -a.y, -a.z); }
+  inline vec3i operator-(const vec3i& a, const vec3i& b) { return vec3i(a.x - b.x, a.y - b.y, a.z - b.z); }
+  inline vec3i operator+(const vec3i& a, const vec3i& b) { return vec3i(a.x + b.x, a.y + b.y, a.z + b.z); }
+  inline vec3i operator*(const vec3i& a, float b) { return vec3i(a.x * b, a.y * b, a.z * b); }
+  inline vec3i operator*(float a, const vec3i& b) { return vec3i(a * b.x, a * b.y, a * b.z); }
+  inline vec3i operator*(const vec3i& a, const vec3i& b) { return vec3i(a.x * b.x, a.y * b.y, a.z * b.z); }
+
+
   inline affine3f operator*(const affine3f& a, const affine3f& b) { return affine3f(a.l * b.l, a.l * b.p + a.p); }
 
   inline float dot(const vec3f& a, const vec3f& b) { return a.x*b.x+a.y*b.y+a.z*b.z; }
@@ -220,6 +237,9 @@ namespace umesh {
   inline vec3f xfmPoint(const affine3f& m, const vec3f& p) { return m * p; }
   inline vec3f xfmVector(const affine3f& m, const vec3f& v) { return m.l * v; }
   inline vec3f xfmNormal(const affine3f& m, const vec3f& n) { return inverse_transpose(m.l) * n; }
+
+  inline vec4f operator*(const vec4f& a, const vec4f& b) { return vec4f(a.x * b.x, a.y * b.y, a.z * b.z, a.w * b.w); }
+
 
   inline affine3f affine3f::rotate(const vec3f& _u, float r) {
     vec3f u = normalize(_u);
@@ -293,6 +313,10 @@ namespace umesh {
   inline std::ostream& operator<<(std::ostream& o, const affine3f& m) { return o << "{ l = " << m.l << ", p = " << m.p << " }"; }
   inline std::ostream& operator<<(std::ostream &o, const box3f& b) { return o << "[" << b.lower <<":"<<b.upper<<"]"; }
 
+  inline bool operator==(const vec2f &a, const vec2f &b)
+  { return a.x==b.x && a.y==b.y; }
+  inline bool operator!=(const vec2f &a, const vec2f &b)
+  { return !(a.x==b.x && a.y==b.y); }
   inline bool operator==(const vec3f &a, const vec3f &b)
   { return a.x==b.x && a.y==b.y && a.z==b.z; }
   inline bool operator!=(const vec3f &a, const vec3f &b)
@@ -301,6 +325,12 @@ namespace umesh {
   { return a.x==b.x && a.y==b.y && a.z==b.z; }
   inline bool operator!=(const vec3i &a, const vec3i &b)
   { return !(a.x==b.x && a.y==b.y && a.z==b.z); }
+  
+  inline bool operator==(const vec4f &a, const vec4f &b)
+  { return a.x==b.x && a.y==b.y && a.z==b.z && a.w==b.w; }
+  inline bool operator!=(const vec4f &a, const vec4f &b)
+  { return !(a.x==b.x && a.y==b.y && a.z==b.z && a.w==b.w); }
+  
   inline bool operator<(const vec3f &a, const vec3f &b)
   {
     return (a.x<b.x) || ((a.x==b.x) && ((a.y<b.y) || ((a.y==b.y) && (a.z<b.z))));
@@ -313,6 +343,14 @@ namespace umesh {
       (a.x==b.x && a.y==b.y && a.z<b.z);
   }
   inline bool operator<(const vec4i &a, const vec4i &b)
+  {
+    return
+      (a.x<b.x) ||
+      (a.x==b.x && a.y<b.y) ||
+      (a.x==b.x && a.y==b.y && a.z<b.z) ||
+      (a.x==b.x && a.y==b.y && a.z==b.z && a.w<b.w);
+  }
+  inline bool operator<(const vec4f &a, const vec4f &b)
   {
     return
       (a.x<b.x) ||
@@ -363,5 +401,7 @@ namespace umesh {
     return result;
   }
 #undef osp_snprintf
+  
+  inline vec3f::vec3f(const vec3i &v) : x{(float)v.x}, y{(float)v.y}, z{(float)v.z} { }
 
 } // ::pbrt

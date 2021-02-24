@@ -17,6 +17,20 @@
 #include "umesh/tetrahedralize.h"
 #include <algorithm>
 
+#ifndef PRINT
+#ifdef __CUDA_ARCH__
+# define PRINT(va) /**/
+# define PING /**/
+#else
+# define PRINT(var) std::cout << #var << "=" << var << std::endl;
+#ifdef __WIN32__
+# define PING std::cout << __FILE__ << "::" << __LINE__ << ": " << __FUNCTION__ << std::endl;
+#else
+# define PING std::cout << __FILE__ << "::" << __LINE__ << ": " << __PRETTY_FUNCTION__ << std::endl;
+#endif
+#endif
+#endif
+
 namespace umesh {
   struct MergedMesh {
     
@@ -217,7 +231,6 @@ namespace umesh {
       auto it = newVertices.find(idx);
       if (it != newVertices.end())
         return it->second;
-      int ID = (int)out->vertices.size();
       
       vec3f centerPos = vec3f(0.f);
       float centerVal = 0.f;
@@ -228,11 +241,21 @@ namespace umesh {
       }
       centerVal *= (1.f/idx.size());
       centerPos = centerPos * (1.f/idx.size());
-      
+
+      // now let's be super-pedantic, and check if the newly generated
+      // vertex by pure chance already exists in the input. shouldn't
+      // happen, but who knows...
+      int ID = -1;
+      auto it2 = vertices.find(centerPos);
+      if (it2 != vertices.end())
+        ID = it2->second;
+      else {
+        ID = (int)out->vertices.size();
+        out->vertices.push_back(centerPos);
+        if (out->perVertex)
+          out->perVertex->values.push_back(centerVal);
+      }
       newVertices[idx] = ID;
-      out->vertices.push_back(centerPos);
-      if (out->perVertex)
-        out->perVertex->values.push_back(centerVal);
       return ID;
     }
 
@@ -328,10 +351,54 @@ namespace umesh {
   }
 
 
+  template<typename T>
+  inline bool contains(T t, int ID)
+  {
+    for (int i=0;i<t.numVertices;i++)
+      if (t[i] == ID) return true;
+    return false;
+  }
+  
+  template<typename T>
+  inline bool offending(T t)
+  {
+    return
+      contains(t,826) &&
+      contains(t,830) &&
+      contains(t,858);
+  }
+
   /*! same as tetrahedralize(), but chop up ONLY elements with curved
       sides, and pass through all those that have flat sides. */
   UMesh::SP tetrahedralize_maintainFlatElements(UMesh::SP in)
   {
+    PING;
+    for (auto prim : in->tets)
+      if (offending(prim)) {
+        PRINT(prim);
+        for (int i=0;i<prim.numVertices;i++)
+          PRINT(in->vertices[prim[i]]);
+      }
+    for (auto prim : in->pyrs)
+      if (offending(prim)) {
+        PRINT(prim);
+        for (int i=0;i<prim.numVertices;i++)
+          PRINT(in->vertices[prim[i]]);
+      }
+    for (auto prim : in->wedges)
+      if (offending(prim)) {
+        PRINT(prim);
+        for (int i=0;i<prim.numVertices;i++)
+          PRINT(in->vertices[prim[i]]);
+      }
+    for (auto prim : in->hexes)
+      if (offending(prim)) {
+        PRINT(prim);
+        for (int i=0;i<prim.numVertices;i++)
+          PRINT(in->vertices[prim[i]]);
+      }
+    
+
     MergedMesh merged(in,/*pass through flat elements:*/true);
     for (auto tet : in->tets)
       merged.add(tet);

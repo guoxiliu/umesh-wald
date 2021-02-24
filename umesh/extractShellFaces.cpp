@@ -39,6 +39,8 @@
 
 namespace umesh {
 
+  UMesh::SP dbg_input;
+
   /*! given a umesh with mixed volumetric elements, create a a new
       mesh of surface elemnts (ie, triangles and quads) that
       corresponds to the outside facing "shell" faces of the input
@@ -59,11 +61,24 @@ namespace umesh {
     int64_t  primIdx:58;
   };
   
+  std::ostream &operator<<(std::ostream &out, const PrimFacetRef &ref)
+  {
+    out << "Ref{type="<<ref.primType<<",fct="<<ref.facetIdx<<",primID="<<ref.primIdx<<"}";
+    return out;
+  }
+  
+
   struct Facet {
-    vec4i         vertexIdx;
+    vec4i        vertexIdx;
     PrimFacetRef prim;
     int          orientation;
   };
+
+  std::ostream &operator<<(std::ostream &out, const Facet &facet)
+  {
+    out << "Facet{vtx="<<facet.vertexIdx<<",prim="<<facet.prim<<",orientation="<<facet.orientation<<"}";
+    return out;
+  }
   
   struct FacetComparator {
     inline 
@@ -376,11 +391,21 @@ namespace umesh {
                              size_t facetIdx)
   {
     const Facet facet = facets[facetIdx];
-    
+
+    assert(faceIndices[facetIdx] > 0);
     size_t faceIdx = faceIndices[facetIdx]-1;
     SharedFace &face = faces[faceIdx];
     auto &side = facet.orientation ? face.onFront : face.onBack;
     face.vertexIdx = facet.vertexIdx;
+    if (!(side.primIdx < 0)) {
+      PRINT(facet);
+      PRINT(facetIdx);
+      PRINT(faceIdx);
+      PRINT(face.onFront);
+      PRINT(face.onBack);
+      PRINT(side);
+      throw std::runtime_error("side is used twice!?");
+    }
     side = facet.prim;
   }
   
@@ -389,7 +414,7 @@ namespace umesh {
                         const uint64_t *faceIndices,
                         size_t numFacets)
   {
-#if 0
+#if 1
     for (size_t i=0;i<numFacets;i++)
       facetsWriteFacesKernel(faces,facets,faceIndices,i);
 #else
@@ -518,7 +543,6 @@ namespace umesh {
     writeFacets(facets,mesh);
     computeUniqueVertexOrder(facets,numFacets);
 
-    PING; PRINT(numFacets);
     // -------------------------------------------------------
     sortFacets(facets,numFacets);
     uint64_t *faceIndices = allocateIndices(numFacets);
@@ -526,7 +550,7 @@ namespace umesh {
     // prefixSum(faceIndices,numFacets);
     postfixSum(faceIndices,numFacets);
     // -------------------------------------------------------
-    size_t numFaces = faceIndices[numFacets-1]+1;
+    size_t numFaces = faceIndices[numFacets-1];//+1;
     std::vector<SharedFace> result;
     SharedFace *faces = allocateFaces(result,numFaces);
     clearFaces(faces,numFaces);
@@ -540,7 +564,22 @@ namespace umesh {
     return result;
   }
 
-
+  template<typename T>
+  inline bool contains(T t, int ID)
+  {
+    for (int i=0;i<t.numVertices;i++)
+      if (t[i] == ID) return true;
+    return false;
+  }
+  
+  template<typename T>
+  inline bool offending(T t)
+  {
+    return
+      contains(t,826) &&
+      contains(t,830) &&
+      contains(t,858);
+  }
 
   /*! given a umesh with mixed volumetric elements, create a a new
       mesh of surface elemnts (ie, triangles and quads) that
@@ -557,14 +596,45 @@ namespace umesh {
                                 original input mesh */
                               bool remeshVertices)
   {
+    PING;
+    dbg_input = input;
     assert(input);
+    PING;
+    for (auto prim : input->tets)
+      if (offending(prim)) {
+        PRINT(prim);
+        for (int i=0;i<prim.numVertices;i++)
+          PRINT(input->vertices[prim[i]]);
+      }
+    for (auto prim : input->pyrs)
+      if (offending(prim)) {
+        PRINT(prim);
+        for (int i=0;i<prim.numVertices;i++)
+          PRINT(input->vertices[prim[i]]);
+      }
+    for (auto prim : input->wedges)
+      if (offending(prim)) {
+        PRINT(prim);
+        for (int i=0;i<prim.numVertices;i++)
+          PRINT(input->vertices[prim[i]]);
+      }
+    for (auto prim : input->hexes)
+      if (offending(prim)) {
+        PRINT(prim);
+        for (int i=0;i<prim.numVertices;i++)
+          PRINT(input->vertices[prim[i]]);
+      }
+    
     std::vector<SharedFace> faces
       = computeFaces(input);
+
     assert(faces.empty() || !input->vertices.empty());
     UMesh::SP output = std::make_shared<UMesh>();
     RemeshHelper helper(*output);
     for (auto &face: faces) {
-      if (face.onFront.primIdx < 0) {
+      if (face.onFront.primIdx < 0 && face.onBack.primIdx < 0) {
+        throw std::runtime_error("face that has BOTH sides unused!?");
+      } else if (face.onFront.primIdx < 0) {
         if (face.vertexIdx.w < 0) {
           // SWAP
           vec3i tri(face.vertexIdx.x,
@@ -606,6 +676,7 @@ namespace umesh {
         /* inner face ... ignore */
       }
     }
+    dbg_input = 0;
     return output;
   }
   
