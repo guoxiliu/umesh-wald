@@ -1,5 +1,5 @@
 // ======================================================================== //
-// Copyright 2018-2020 Ingo Wald                                            //
+// Copyright 2018-2021 Ingo Wald                                            //
 //                                                                          //
 // Licensed under the Apache License, Version 2.0 (the "License");          //
 // you may not use this file except in compliance with the License.         //
@@ -16,6 +16,7 @@
 
 #include "umesh/io/ugrid32.h"
 #include "umesh/io/UMesh.h"
+#include "umesh/check.h"
 
 namespace umesh {
 
@@ -24,7 +25,7 @@ namespace umesh {
     if (error != "")
       std::cerr << "\nError : " << error  << "\n\n";
 
-    std::cout << "Usage: ./umeshInfo <in.umesh>\n\n";
+    std::cout << "Usage: ./umeshSanityCheck <in.umesh>\n\n";
     exit(error != "");
   };
   
@@ -47,6 +48,8 @@ namespace umesh {
     UMesh::SP in = io::loadBinaryUMesh(inFileName);
 
     std::cout << "UMesh info:\n" << in->toString(false) << std::endl;
+    sanityCheck(in);
+    std::cout << "all sanity checks went through ..." << std::endl;
   }
   
 } // ::umesh

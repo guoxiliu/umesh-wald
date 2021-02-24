@@ -85,6 +85,9 @@ namespace umesh {
   uint32_t RemeshHelper::translate(const uint32_t in,
                                    UMesh::SP otherMesh)
   {
+    assert(otherMesh);
+    assert(in >= 0);
+    assert(in < otherMesh->vertices.size());
     if (otherMesh->perVertex) {
       return getID(otherMesh->vertices[in],
                    otherMesh->perVertex->values[in]);
@@ -102,6 +105,7 @@ namespace umesh {
   void RemeshHelper::translate(uint32_t *indices, int N,
                                UMesh::SP otherMesh)
   {
+    assert(otherMesh);
     for (int i=0;i<N;i++)
       indices[i] = translate(indices[i],otherMesh);
   }

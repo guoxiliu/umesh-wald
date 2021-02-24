@@ -1,5 +1,5 @@
 // ======================================================================== //
-// Copyright 2018-2020 Ingo Wald                                            //
+// Copyright 2018-2021 Ingo Wald                                            //
 //                                                                          //
 // Licensed under the Apache License, Version 2.0 (the "License");          //
 // you may not use this file except in compliance with the License.         //
@@ -14,39 +14,17 @@
 // limitations under the License.                                           //
 // ======================================================================== //
 
-#include "umesh/io/ugrid32.h"
-#include "umesh/io/UMesh.h"
+#pragma once
+
+#include "UMesh.h"
 
 namespace umesh {
 
-  void usage(const std::string error="")
-  {
-    if (error != "")
-      std::cerr << "\nError : " << error  << "\n\n";
-
-    std::cout << "Usage: ./umeshInfo <in.umesh>\n\n";
-    exit(error != "");
-  };
+  /* if specified, the sanity checker will ignore 'no volume prims' */
+#define CHECK_FLAG_MESH_IS_SURFACE (1<<0)
   
-  extern "C" int main(int ac, char **av)
-  {
-    std::string inFileName;
-    for (int i=1;i<ac;i++) {
-      const std::string arg = av[i];
-      if (arg == "-h")
-        usage();
-      else if (arg[0] != '-')
-        inFileName = arg;
-      else
-        usage("unknown cmd-line arg '"+arg+"'");
-    }
-    
-    if (inFileName == "") usage("no input file specified");
-    
-    std::cout << "loading umesh from " << inFileName << std::endl;
-    UMesh::SP in = io::loadBinaryUMesh(inFileName);
-
-    std::cout << "UMesh info:\n" << in->toString(false) << std::endl;
-  }
+  /*! perform some sanity checking of the given mesh (checking indices
+    are valid, etc) */
+  void sanityCheck(UMesh::SP umesh, uint32_t flags = 0);
   
-} // ::umesh
+} // :: umesh

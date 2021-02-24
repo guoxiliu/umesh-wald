@@ -159,7 +159,8 @@ namespace umesh {
   {
     std::vector<PrimRef> result;
     createVolumePrimRefs(result);
-    return std::move(result);
+    return result;
+    // return std::move(result);
   }
 
 
@@ -169,7 +170,8 @@ namespace umesh {
   {
     std::vector<PrimRef> result;
     createSurfacePrimRefs(result);
-    return std::move(result);
+    return (result);
+    // return std::move(result);
   }
     
 

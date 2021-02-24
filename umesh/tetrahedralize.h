@@ -51,5 +51,12 @@ namespace umesh {
                            int ownedPyrs,
                            int ownedWedges,
                            int ownedHexes);
+  
+  /*! same as tetrahedralize, but chop up ONLY elements with curved
+      sides, and pass through all those that have flat sides. Note
+      this will ALSO (do the best job it can at) flipping
+      negative-volume leemnts to positive volume */
+  UMesh::SP tetrahedralize_maintainFlatElements(UMesh::SP mesh);
+  
 } // ::umesh
 

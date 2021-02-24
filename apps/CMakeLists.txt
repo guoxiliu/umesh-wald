@@ -28,6 +28,15 @@ target_link_libraries(umeshInfo
   )
 
 # ------------------------------------------------------------------
+# same as info, with added sanity checks (valid indices etc)
+# ------------------------------------------------------------------
+add_executable(umeshSanityCheck
+  sanityCheck.cpp
+  )
+target_link_libraries(umeshSanityCheck
+  umesh
+  )
+# ------------------------------------------------------------------
 # import a OFF file to umesh format
 # ------------------------------------------------------------------
 add_executable(umeshImportOFF
@@ -126,6 +135,40 @@ add_executable(umeshExtractSurfaceMesh
   extractSurfaceMesh.cpp
   )
 target_link_libraries(umeshExtractSurfaceMesh
+  umesh
+  )
+
+# ------------------------------------------------------------------
+# computes the outer shell faces of the volume elements (ie, all those
+# faces that are NOT shared between two elements, then dumps those in
+# obj or BTM format)
+# ------------------------------------------------------------------
+add_executable(umeshExtractShell
+  extractShell.cpp
+  )
+target_link_libraries(umeshExtractShell
+  umesh
+  )
+
+# ------------------------------------------------------------------
+# no computations at all - just dumps the mesh that's implicit in the
+# input umesh, and dumps it in obj format (other prims get ignored)
+# ------------------------------------------------------------------
+add_executable(umeshExaToUMesh
+  exaToUMesh.cpp
+  )
+target_link_libraries(umeshExaToUMesh
+  umesh
+  )
+
+# ------------------------------------------------------------------
+# no computations at all - just dumps the mesh that's implicit in the
+# input umesh, and dumps it in obj format (other prims get ignored)
+# ------------------------------------------------------------------
+add_executable(umeshFixNegativeVolumeElements
+  fixNegativeVolumeElements.cpp
+  )
+target_link_libraries(umeshFixNegativeVolumeElements
   umesh
   )
 
