@@ -564,7 +564,7 @@ namespace umesh {
     return result;
   }
 
-#if 0
+#if 1
   // only use for debugging, to force priting of prims that contain certain vertices or faces
   template<typename T>
   inline bool contains(T t, int ID)
@@ -578,9 +578,9 @@ namespace umesh {
   inline bool offending(T t)
   {
     return
-      contains(t,826) &&
-      contains(t,830) &&
-      contains(t,858);
+      contains(t,2) &&
+      contains(t,3) &&
+      contains(t,4);
   }
 #endif
   

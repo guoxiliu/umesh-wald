@@ -110,13 +110,33 @@ namespace umesh {
       indices[i] = translate(indices[i],otherMesh);
   }
 
+  bool noDuplicates(const Triangle &tri)
+  {
+    return
+      tri.x != tri.y &&
+      tri.x != tri.z &&
+      tri.y != tri.z;
+  }
+  
+  bool noDuplicates(const Tet &tet)
+  {
+    return
+      tet.x != tet.y &&
+      tet.x != tet.z &&
+      tet.x != tet.w &&
+      tet.y != tet.z &&
+      tet.y != tet.w &&
+      tet.z != tet.w;
+  }
+  
   void RemeshHelper::add(UMesh::SP otherMesh, UMesh::PrimRef primRef)
   {
     switch (primRef.type) {
     case UMesh::TRI: {
       auto prim = otherMesh->triangles[primRef.ID];
       translate((uint32_t*)&prim,3,otherMesh);
-      target.triangles.push_back(prim);
+      if (noDuplicates(prim))
+        target.triangles.push_back(prim);
     } break;
     case UMesh::QUAD: {
       auto prim = otherMesh->quads[primRef.ID];
@@ -127,7 +147,8 @@ namespace umesh {
     case UMesh::TET: {
       auto prim = otherMesh->tets[primRef.ID];
       translate((uint32_t*)&prim,4,otherMesh);
-      target.tets.push_back(prim);
+      if (noDuplicates(prim))
+        target.tets.push_back(prim);
     } break;
     case UMesh::PYR: {
       auto prim = otherMesh->pyrs[primRef.ID];
