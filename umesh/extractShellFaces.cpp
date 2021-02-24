@@ -39,7 +39,7 @@
 
 namespace umesh {
 
-  UMesh::SP dbg_input;
+  // UMesh::SP dbg_input;
 
   /*! given a umesh with mixed volumetric elements, create a a new
       mesh of surface elemnts (ie, triangles and quads) that
@@ -564,6 +564,8 @@ namespace umesh {
     return result;
   }
 
+#if 0
+  // only use for debugging, to force priting of prims that contain certain vertices or faces
   template<typename T>
   inline bool contains(T t, int ID)
   {
@@ -580,7 +582,8 @@ namespace umesh {
       contains(t,830) &&
       contains(t,858);
   }
-
+#endif
+  
   /*! given a umesh with mixed volumetric elements, create a a new
       mesh of surface elemnts (ie, triangles and quads) that
       corresponds to the outside facing "shell" faces of the input
@@ -596,10 +599,9 @@ namespace umesh {
                                 original input mesh */
                               bool remeshVertices)
   {
-    PING;
-    dbg_input = input;
+#if 0
+    // dbg_input = input;
     assert(input);
-    PING;
     for (auto prim : input->tets)
       if (offending(prim)) {
         PRINT(prim);
@@ -624,6 +626,7 @@ namespace umesh {
         for (int i=0;i<prim.numVertices;i++)
           PRINT(input->vertices[prim[i]]);
       }
+#endif
     
     std::vector<SharedFace> faces
       = computeFaces(input);
@@ -676,7 +679,7 @@ namespace umesh {
         /* inner face ... ignore */
       }
     }
-    dbg_input = 0;
+    // dbg_input = 0;
     return output;
   }
   
