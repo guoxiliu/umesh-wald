@@ -350,6 +350,8 @@ namespace umesh {
     return merged.out;
   }
 
+#if 0
+  // only use for debugging, to force priting of prims that contain certain vertices or faces
 
   template<typename T>
   inline bool contains(T t, int ID)
@@ -367,11 +369,13 @@ namespace umesh {
       contains(t,830) &&
       contains(t,858);
   }
-
+#endif
+  
   /*! same as tetrahedralize(), but chop up ONLY elements with curved
       sides, and pass through all those that have flat sides. */
   UMesh::SP tetrahedralize_maintainFlatElements(UMesh::SP in)
   {
+#if 0
     PING;
     for (auto prim : in->tets)
       if (offending(prim)) {
@@ -397,7 +401,7 @@ namespace umesh {
         for (int i=0;i<prim.numVertices;i++)
           PRINT(in->vertices[prim[i]]);
       }
-    
+#endif    
 
     MergedMesh merged(in,/*pass through flat elements:*/true);
     for (auto tet : in->tets)
