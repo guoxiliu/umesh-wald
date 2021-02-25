@@ -62,6 +62,13 @@ namespace umesh {
                      const vec3f &v2,
                      const vec3f &v3)
     {
+      if (v0 == v1 ||
+          v0 == v2 ||
+          v0 == v3 ||
+          v1 == v2 ||
+          v1 == v3 ||
+          v2 == v3)
+        return false;
       const vec3f n0 = cross(v1-v0,v2-v0);
       if (length(n0) == 0.f) return false;
       

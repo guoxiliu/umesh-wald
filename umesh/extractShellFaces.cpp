@@ -276,6 +276,7 @@ namespace umesh {
     int i5 = hex.top.y;
     int i6 = hex.top.z;
     int i7 = hex.top.w;
+
 #if 0
     facets[0].vertexIdx = { i0,i1,i3,i2 };
     facets[1].vertexIdx = { i4,i5,i6,i7 };
