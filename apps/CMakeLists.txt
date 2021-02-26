@@ -102,7 +102,8 @@ target_link_libraries(umeshComputeTetConnectivity
 # elements
 # ------------------------------------------------------------------
 add_executable(umeshComputeShell
-  computeShell.cpp
+  extractShell.cpp
+# do not use this any more:  computeShell.cpp
   )
 target_link_libraries(umeshComputeShell
   umesh
