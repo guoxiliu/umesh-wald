@@ -128,7 +128,17 @@ namespace umesh {
   void computeUniqueVertexOrder(Facet &facet)
   {
     vec4i idx = facet.vertexIdx;
+    std::set<int> uniqueIDs;
+    uniqueIDs.insert(idx.x);
+    uniqueIDs.insert(idx.y);
+    uniqueIDs.insert(idx.z);
+    
     if (idx.w < 0) {
+      if (uniqueIDs.size() < 3) {
+        facet.vertexIdx = vec4i(-1);
+        return;
+      }
+        // throw std::runtime_error("tri face with "+std::to_string(uniqueIDs.size()) + "vertices!?");
       if (idx.y < idx.x)
         { swap(idx.x,idx.y); facet.orientation = 1-facet.orientation; }
       if (idx.z < idx.x)
@@ -136,21 +146,56 @@ namespace umesh {
       if (idx.z < idx.y)
         { swap(idx.y,idx.z); facet.orientation = 1-facet.orientation; }
     } else {
-      int lv = idx.x, li=0;
-      if (idx.y < lv) { lv = idx.y; li = 1; }
-      if (idx.z < lv) { lv = idx.z; li = 2; }
-      if (idx.w < lv) { lv = idx.w; li = 3; }
+      uniqueIDs.insert(idx.w);
 
-      switch (li) {
-      case 0: idx = { idx.x,idx.y,idx.z,idx.w }; break;
-      case 1: idx = { idx.y,idx.z,idx.w,idx.x }; break;
-      case 2: idx = { idx.z,idx.w,idx.x,idx.y }; break;
-      case 3: idx = { idx.w,idx.x,idx.y,idx.z }; break;
-      };
+      if (uniqueIDs.size() == 2) {
+        facet.vertexIdx = vec4i(-1);
+        return;
+      }
+      
+      if (uniqueIDs.size() == 3) {
+        if (idx.x==idx.y) {
+          idx = { idx.x, idx.z, idx.w, -1 };
+        } else if (idx.x == idx.z) {
+          // oooooh... this one is fishy
+          PING;
+          idx = { idx.x, idx.y, idx.w, -1 };
+        } else if (idx.x == idx.w) {
+          idx = { idx.x, idx.y, idx.z, -1 };
+        } else if (idx.y == idx.z) {
+          idx = { idx.x, idx.y, idx.w, -1 };
+        } else if (idx.y == idx.w) {
+          // oooooh... this one is fishy
+          PING;
+          idx = { idx.x, idx.y, idx.z, -1 };
+        } else if (idx.z == idx.w) {
+          idx = { idx.x, idx.y, idx.z, -1 };
+        } else throw std::runtime_error("???");
+        
+        if (idx.y < idx.x)
+          { swap(idx.x,idx.y); facet.orientation = 1-facet.orientation; }
+        if (idx.z < idx.x)
+          { swap(idx.x,idx.z); facet.orientation = 1-facet.orientation; }
+        if (idx.z < idx.y)
+          { swap(idx.y,idx.z); facet.orientation = 1-facet.orientation; }
+      } else {
 
-      if (idx.w < idx.y) {
-        facet.orientation = 1-facet.orientation;
-        swap(idx.w,idx.y);
+        int lv = idx.x, li=0;
+        if (idx.y < lv) { lv = idx.y; li = 1; }
+        if (idx.z < lv) { lv = idx.z; li = 2; }
+        if (idx.w < lv) { lv = idx.w; li = 3; }
+
+        switch (li) {
+        case 0: idx = { idx.x,idx.y,idx.z,idx.w }; break;
+        case 1: idx = { idx.y,idx.z,idx.w,idx.x }; break;
+        case 2: idx = { idx.z,idx.w,idx.x,idx.y }; break;
+        case 3: idx = { idx.w,idx.x,idx.y,idx.z }; break;
+        };
+
+        if (idx.w < idx.y) {
+          facet.orientation = 1-facet.orientation;
+          swap(idx.w,idx.y);
+        }
       }
     }
     facet.vertexIdx = idx;
@@ -203,24 +248,24 @@ namespace umesh {
     
     UMesh::Pyr pyr = mesh.pyrs[pyrIdx];
     vec4i base = pyr.base;
-#if 0
-    int i0 = pyr.base.x;
-    int i1 = pyr.base.y;
-    int i2 = pyr.base.z;
-    int i3 = pyr.base.w;
-    int i4 = pyr.top;
-    facets[0].vertexIdx = { i0,i1,i4,-1 };
-    facets[0].vertexIdx = { i0,i4,i3,-1 };
-    facets[0].vertexIdx = { i1,i2,i4,-1 };
-    facets[0].vertexIdx = { i3,i4,i2,-1 };
-    facets[4].vertexIdx = { i0,i3,i2,i1 };
-#else
+// #if 0
+//     int i0 = pyr.base.x;
+//     int i1 = pyr.base.y;
+//     int i2 = pyr.base.z;
+//     int i3 = pyr.base.w;
+//     int i4 = pyr.top;
+//     facets[0].vertexIdx = { i0,i1,i4,-1 };
+//     facets[0].vertexIdx = { i0,i4,i3,-1 };
+//     facets[0].vertexIdx = { i1,i2,i4,-1 };
+//     facets[0].vertexIdx = { i3,i4,i2,-1 };
+//     facets[4].vertexIdx = { i0,i3,i2,i1 };
+// #else
     facets[0].vertexIdx = { pyr.top,base.y,base.x,-1 };
     facets[1].vertexIdx = { pyr.top,base.z,base.y,-1 };
     facets[2].vertexIdx = { pyr.top,base.w,base.z,-1 };
     facets[3].vertexIdx = { pyr.top,base.x,base.w,-1 };
     facets[4].vertexIdx = { base.x,base.y,base.z,base.w };
-#endif
+// #endif
   }
   
   inline 
@@ -241,19 +286,52 @@ namespace umesh {
     int i3 = wedge.back.x;
     int i4 = wedge.back.y;
     int i5 = wedge.back.z;
-#if 0
-    facets[0].vertexIdx = { i0,i1,i2,-1 };
-    facets[1].vertexIdx = { i3,i5,i4,-1 };
-    facets[2].vertexIdx = { i0,i2,i5,i3 };
-    facets[3].vertexIdx = { i1,i4,i5,i2 };
-    facets[4].vertexIdx = { i0,i3,i4,i1 };
-#else
-    facets[0].vertexIdx = { i0,i2,i1,-1 };
-    facets[1].vertexIdx = { i3,i4,i5,-1 };
-    facets[2].vertexIdx = { i0,i3,i5,i2 };
-    facets[3].vertexIdx = { i1,i2,i5,i4 };
-    facets[4].vertexIdx = { i0,i1,i4,i3 };
-#endif
+
+    // std::set<int> uniqueIndices;
+    // uniqueIndices.insert(i0);
+    // uniqueIndices.insert(i1);
+    // uniqueIndices.insert(i2);
+    // uniqueIndices.insert(i3);
+    // uniqueIndices.insert(i4);
+    // uniqueIndices.insert(i5);
+
+    // if (uniqueIndices.size() == 6) {
+      facets[0].vertexIdx = { i0,i2,i1,-1 };
+      facets[1].vertexIdx = { i3,i4,i5,-1 };
+      facets[2].vertexIdx = { i0,i3,i5,i2 };
+      facets[3].vertexIdx = { i1,i2,i5,i4 };
+      facets[4].vertexIdx = { i0,i1,i4,i3 };
+    // } else if (uniqueIndices.size() == 5) {
+    //   if (i0 == i1) {
+    //     // front face is a straight edge...
+        
+    //     // left (curved)
+    //     facets[0].vertexIdx = { i0,i3,i5,i2 };
+    //     // right (curved)
+    //     facets[1].vertexIdx = { i1,i2,i5,i4 };
+    //     // front - empty
+    //     facets[2].vertexIdx = { -1,-1,-1,-1 };
+    //     // back - tri
+    //     facets[3].vertexIdx = { i3,i4,i5,-1 };
+    //     // bottom - tri
+    //     facets[4].vertexIdx = { i0,i4,i3,-1 };
+    //   } else if (i3 == i4) {
+    //     // back face is a straight edge...
+        
+    //     // left (curved)
+    //     facets[0].vertexIdx = { i0,i3,i5,i2 };
+    //     // right (curved)
+    //     facets[1].vertexIdx = { i1,i2,i5,i4 };
+    //     // front - tri
+    //     facets[2].vertexIdx = { i0,i2,i1,-1 };
+    //     // back - empty
+    //     facets[3].vertexIdx = { -1,-1,-1,-1 };
+    //     // bottom - tri
+    //     facets[4].vertexIdx = { i0,i1,i3,-1 };
+    //   } else
+    //     throw std::runtime_error("case not handled (wedge 5)...");
+    // } else
+    //   throw std::runtime_error("case not handled (wedge < 5)...");
   }
   
   inline 
@@ -277,21 +355,12 @@ namespace umesh {
     int i6 = hex.top.z;
     int i7 = hex.top.w;
 
-#if 0
-    facets[0].vertexIdx = { i0,i1,i3,i2 };
-    facets[1].vertexIdx = { i4,i5,i6,i7 };
-    facets[2].vertexIdx = { i0,i1,i5,i4 };
-    facets[3].vertexIdx = { i2,i3,i7,i6 };
-    facets[4].vertexIdx = { i1,i2,i6,i5 };
-    facets[5].vertexIdx = { i0,i4,i7,i3 };
-#else
     facets[0].vertexIdx = { i0,i1,i2,i3 };
     facets[1].vertexIdx = { i4,i7,i6,i5 };
     facets[2].vertexIdx = { i0,i4,i5,i1 };
     facets[3].vertexIdx = { i2,i6,i7,i3 };
     facets[4].vertexIdx = { i1,i5,i6,i2 };
     facets[5].vertexIdx = { i0,i3,i7,i4 };
-#endif
   }
   
   inline 
@@ -393,6 +462,9 @@ namespace umesh {
   {
     const Facet facet = facets[facetIdx];
 
+    if (facet.vertexIdx.x < 0)
+      return;
+    
     assert(faceIndices[facetIdx] > 0);
     size_t faceIdx = faceIndices[facetIdx]-1;
     SharedFace &face = faces[faceIdx];
@@ -481,6 +553,7 @@ namespace umesh {
     clearPrim.primIdx = -1;
     for (size_t i=0;i<numFaces;i++) {
       faces[i].onFront = faces[i].onBack = clearPrim;
+      faces[i].vertexIdx = vec4i(-1);
     }
   }
   void initFaceIndices(uint64_t *faceIndices,
@@ -542,6 +615,8 @@ namespace umesh {
     
     Facet *facets = allocateFacets(numFacets);
     writeFacets(facets,mesh);
+    // for (int i=0;i<numFacets;i++)
+    //   std::cout << "facet " << i << " = " << facets[i] << std::endl;
     computeUniqueVertexOrder(facets,numFacets);
 
     // -------------------------------------------------------
@@ -580,8 +655,9 @@ namespace umesh {
   {
     return
       contains(t,0) &&
-      contains(t,2) &&
-      contains(t,3);
+      contains(t,21) &&
+      contains(t,22) &&
+      contains(t,23);
   }
 #endif
   
@@ -600,7 +676,7 @@ namespace umesh {
                                 original input mesh */
                               bool remeshVertices)
   {
-#if 0
+#if 1
     // dbg_input = input;
     assert(input);
     for (auto prim : input->tets)
@@ -609,24 +685,24 @@ namespace umesh {
         for (int i=0;i<prim.numVertices;i++)
           PRINT(input->vertices[prim[i]]);
       }
-    // for (auto prim : input->pyrs)
-    //   if (offending(prim)) {
-    //     PRINT(prim);
-    //     for (int i=0;i<prim.numVertices;i++)
-    //       PRINT(input->vertices[prim[i]]);
-    //   }
-    // for (auto prim : input->wedges)
-    //   if (offending(prim)) {
-    //     PRINT(prim);
-    //     for (int i=0;i<prim.numVertices;i++)
-    //       PRINT(input->vertices[prim[i]]);
-    //   }
-    // for (auto prim : input->hexes)
-    //   if (offending(prim)) {
-    //     PRINT(prim);
-    //     for (int i=0;i<prim.numVertices;i++)
-    //       PRINT(input->vertices[prim[i]]);
-    //   }
+    for (auto prim : input->pyrs)
+      if (offending(prim)) {
+        PRINT(prim);
+        for (int i=0;i<prim.numVertices;i++)
+          PRINT(input->vertices[prim[i]]);
+      }
+    for (auto prim : input->wedges)
+      if (offending(prim)) {
+        PRINT(prim);
+        for (int i=0;i<prim.numVertices;i++)
+          PRINT(input->vertices[prim[i]]);
+      }
+    for (auto prim : input->hexes)
+      if (offending(prim)) {
+        PRINT(prim);
+        for (int i=0;i<prim.numVertices;i++)
+          PRINT(input->vertices[prim[i]]);
+      }
 #endif
     
     std::vector<SharedFace> faces
@@ -636,7 +712,12 @@ namespace umesh {
     UMesh::SP output = std::make_shared<UMesh>();
     RemeshHelper helper(*output);
     for (auto &face: faces) {
+      if (face.vertexIdx.x < 0)
+        // invalid face
+        continue;
+      
       if (face.onFront.primIdx < 0 && face.onBack.primIdx < 0) {
+        PRINT(face.vertexIdx);
         throw std::runtime_error("face that has BOTH sides unused!?");
       } else if (face.onFront.primIdx < 0) {
         if (face.vertexIdx.w < 0) {

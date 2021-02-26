@@ -16,6 +16,7 @@
 
 #include "umesh/tetrahedralize.h"
 #include <algorithm>
+#include <set>
 
 #ifndef PRINT
 #ifdef __CUDA_ARCH__
@@ -94,6 +95,7 @@ namespace umesh {
       vec3f c = out->vertices[tet.z];
       vec3f d = out->vertices[tet.w];
       float volume = dot(d-a,cross(b-a,c-a));
+      
       if (volume == 0.f)
         /* degenerate/flat - dump this */
         return;
@@ -142,13 +144,16 @@ namespace umesh {
 
     void add(const UMesh::Wedge &wedge)
     {
+      const vec3f v0 = out->vertices[wedge[0]];
+      const vec3f v1 = out->vertices[wedge[1]];
+      const vec3f v2 = out->vertices[wedge[2]];
+      const vec3f v3 = out->vertices[wedge[3]];
+      const vec3f v4 = out->vertices[wedge[4]];
+      const vec3f v5 = out->vertices[wedge[5]];
+      if (v2 == v5)
+        throw std::runtime_error("wedge that should be a pyramid!?");
+      
       if (passThroughFlatElements) {
-        const vec3f v0 = out->vertices[wedge[0]];
-        const vec3f v1 = out->vertices[wedge[1]];
-        const vec3f v2 = out->vertices[wedge[2]];
-        const vec3f v3 = out->vertices[wedge[3]];
-        const vec3f v4 = out->vertices[wedge[4]];
-        const vec3f v5 = out->vertices[wedge[5]];
         if (flat(v0,v2,v5,v3) &&
             flat(v1,v2,v5,v4) &&
             flat(v0,v1,v4,v3)) {
@@ -164,20 +169,60 @@ namespace umesh {
           return;
         }
       }
-      // newly created points:
-      int center = getCenter({wedge[0],wedge[1],wedge[2],
-                              wedge[3],wedge[4],wedge[5]});
-
-      // bottom face to center
-      add(UMesh::Pyr(wedge[0],wedge[1],wedge[4],wedge[3],center),"wed1");
-      // left face to center
-      add(UMesh::Pyr(wedge[0],wedge[3],wedge[5],wedge[2],center),"wed2");
-      // right face to center
-      add(UMesh::Pyr(wedge[1],wedge[2],wedge[5],wedge[4],center),"wed3");
-      // front face to center
-      add(UMesh::Tet(wedge[0],wedge[2],wedge[1],center),"wed4");
-      // back face to center
-      add(UMesh::Tet(wedge[3],wedge[4],wedge[5],center),"wed5");
+      
+      std::set<vec3f> uniqueBaseVertices;
+      uniqueBaseVertices.insert(v0);
+      uniqueBaseVertices.insert(v1);
+      uniqueBaseVertices.insert(v3);
+      uniqueBaseVertices.insert(v4);
+      if (uniqueBaseVertices.size() == 4) {
+        // newly created points:
+        int center = getCenter({wedge[0],wedge[1],wedge[2],
+                                wedge[3],wedge[4],wedge[5]});
+        
+        // bottom face to center
+        add(UMesh::Pyr(wedge[0],wedge[1],wedge[4],wedge[3],center),"wed1");
+        // left face to center
+        add(UMesh::Pyr(wedge[0],wedge[3],wedge[5],wedge[2],center),"wed2");
+        // right face to center
+        add(UMesh::Pyr(wedge[1],wedge[2],wedge[5],wedge[4],center),"wed3");
+        // front face to center
+        add(UMesh::Tet(wedge[0],wedge[2],wedge[1],center),"wed4");
+        // back face to center
+        add(UMesh::Tet(wedge[3],wedge[4],wedge[5],center),"wed5");
+      } else if (uniqueBaseVertices.size() == 3) {
+        if (v0 == v1) {
+          int center = getCenter({wedge[0],wedge[2],
+                                  wedge[3],wedge[4],wedge[5]});
+          // bottom face to center
+          add(UMesh::Tet(wedge[0],wedge[4],wedge[3],center),"wed1");
+          // left face to center
+          add(UMesh::Pyr(wedge[0],wedge[3],wedge[5],wedge[2],center),"wed2");
+          // right face to center
+          add(UMesh::Pyr(wedge[1],wedge[2],wedge[5],wedge[4],center),"wed3");
+          // // front face to center
+          // add(UMesh::Tet(wedge[0],wedge[2],wedge[1],center),"wed4");
+          // back face to center
+          add(UMesh::Tet(wedge[3],wedge[4],wedge[5],center),"wed5");
+          
+        } else if (v3 == v4) {
+          int center = getCenter({wedge[0],wedge[1],wedge[2],
+                                  wedge[3],wedge[5]});
+          // bottom face to center
+          add(UMesh::Tet(wedge[0],wedge[1],wedge[3],center),"wed1");
+          // left face to center
+          add(UMesh::Pyr(wedge[0],wedge[3],wedge[5],wedge[2],center),"wed2");
+          // right face to center
+          add(UMesh::Pyr(wedge[1],wedge[2],wedge[5],wedge[4],center),"wed3");
+           // front face to center
+          add(UMesh::Tet(wedge[0],wedge[2],wedge[1],center),"wed4");
+          // // back face to center
+          // add(UMesh::Tet(wedge[3],wedge[4],wedge[5],center),"wed5");
+        } else
+          throw std::runtime_error("oy-wey.... what _is_ that shape!?");
+      } else {
+        throw std::runtime_error("wedge that should be a tet!?");
+      }
     }
     
     void add(const UMesh::Hex &hex)
@@ -191,12 +236,12 @@ namespace umesh {
         const vec3f v5 = out->vertices[hex[5]];
         const vec3f v6 = out->vertices[hex[6]];
         const vec3f v7 = out->vertices[hex[7]];
-        if (flat(v0,v1,v5,v4) &&
-            flat(v1,v2,v6,v5) &&
-            flat(v2,v6,v7,v3) &&
-            flat(v0,v4,v7,v3) &&
+        if (flat(v0,v1,v2,v3) &&
             flat(v4,v5,v6,v7) &&
-            flat(v0,v3,v2,v1)) {
+            flat(v1,v2,v6,v5) &&
+            flat(v0,v3,v7,v4) &&
+            flat(v0,v1,v5,v4) &&
+            flat(v3,v2,v6,v7)) {
           if (volume(v0,v1,v2,v5) < 0.f) {
             UMesh::Hex _hex = hex;
             std::swap(_hex[0],_hex[4]);
@@ -273,6 +318,43 @@ namespace umesh {
     bool passThroughFlatElements;
   };
 
+
+
+#if 1
+  // only use for debugging, to force priting of prims that contain certain vertices or faces
+
+  template<typename T>
+  inline bool contains(UMesh::SP in, T t, int ID)
+  {
+    for (int i=0;i<t.numVertices;i++)
+      if (t[i] == ID) return true;
+    return false;
+  }
+  
+  template<typename T>
+  inline bool contains(UMesh::SP in, T t, const vec3f &pos)
+  {
+    for (int i=0;i<t.numVertices;i++)
+      if (in->vertices[t[i]] == pos) return true;
+    return false;
+  }
+  
+  template<typename T>
+  inline bool offending(UMesh::SP in, T t)
+  {
+    return
+      contains(in,t,vec3f(4.5f,1.5f,1.5f)) &&
+      contains(in,t,vec3f(5.5f,1.5f,1.5f)) ;
+      // contains(t,830) &&
+      // contains(t,858);
+  }
+#endif
+  
+
+
+
+
+  
   /*! tetrahedralize a given input mesh; in a way that non-triangular
     faces (from wedges, pyramids, and hexes) will always be
     subdividied exactly the same way even if that same face is used
@@ -294,6 +376,36 @@ namespace umesh {
   */
   UMesh::SP tetrahedralize(UMesh::SP in)
   {
+#if 1
+    // for (auto vtx : in->vertices)
+    //   PRINT(vtx);
+    PING;
+    for (auto prim : in->tets)
+      if (offending(in,prim)) {
+        PRINT(prim);
+        for (int i=0;i<prim.numVertices;i++)
+          PRINT(in->vertices[prim[i]]);
+      }
+    for (auto prim : in->pyrs)
+      if (offending(in,prim)) {
+        PRINT(prim);
+        for (int i=0;i<prim.numVertices;i++)
+          PRINT(in->vertices[prim[i]]);
+      }
+    for (auto prim : in->wedges)
+      if (offending(in,prim)) {
+        PRINT(prim);
+        for (int i=0;i<prim.numVertices;i++)
+          PRINT(in->vertices[prim[i]]);
+      }
+    for (auto prim : in->hexes)
+      if (offending(in,prim)) {
+        PRINT(prim);
+        for (int i=0;i<prim.numVertices;i++)
+          PRINT(in->vertices[prim[i]]);
+      }
+#endif    
+
     MergedMesh merged(in);
     for (auto tet : in->tets)
       merged.add(tet);
@@ -357,53 +469,32 @@ namespace umesh {
     return merged.out;
   }
 
-#if 0
-  // only use for debugging, to force priting of prims that contain certain vertices or faces
-
-  template<typename T>
-  inline bool contains(T t, int ID)
-  {
-    for (int i=0;i<t.numVertices;i++)
-      if (t[i] == ID) return true;
-    return false;
-  }
-  
-  template<typename T>
-  inline bool offending(T t)
-  {
-    return
-      contains(t,826) &&
-      contains(t,830) &&
-      contains(t,858);
-  }
-#endif
-  
   /*! same as tetrahedralize(), but chop up ONLY elements with curved
       sides, and pass through all those that have flat sides. */
   UMesh::SP tetrahedralize_maintainFlatElements(UMesh::SP in)
   {
-#if 0
+#if 1
     PING;
     for (auto prim : in->tets)
-      if (offending(prim)) {
+      if (offending(in,prim)) {
         PRINT(prim);
         for (int i=0;i<prim.numVertices;i++)
           PRINT(in->vertices[prim[i]]);
       }
     for (auto prim : in->pyrs)
-      if (offending(prim)) {
+      if (offending(in,prim)) {
         PRINT(prim);
         for (int i=0;i<prim.numVertices;i++)
           PRINT(in->vertices[prim[i]]);
       }
     for (auto prim : in->wedges)
-      if (offending(prim)) {
+      if (offending(in,prim)) {
         PRINT(prim);
         for (int i=0;i<prim.numVertices;i++)
           PRINT(in->vertices[prim[i]]);
       }
     for (auto prim : in->hexes)
-      if (offending(prim)) {
+      if (offending(in,prim)) {
         PRINT(prim);
         for (int i=0;i<prim.numVertices;i++)
           PRINT(in->vertices[prim[i]]);

@@ -178,3 +178,13 @@ target_link_libraries(umeshFixNegativeVolumeElements
 # ------------------------------------------------------------------
 add_subdirectory(computeFaces)
 
+
+# ------------------------------------------------------------------
+# generates soe test cases for exa to umesh generator
+# ------------------------------------------------------------------
+add_executable(exaTestCases
+  exaTestCase.cpp
+  )
+target_link_libraries(exaTestCases
+  umesh
+  )

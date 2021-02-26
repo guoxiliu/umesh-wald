@@ -140,7 +140,7 @@ namespace umesh {
   struct vec3i {
     int x, y, z;
     vec3i() = default;
-    explicit vec3i(int v) : x{v}, y{v}, z{v} { }
+    vec3i(int v) : x{v}, y{v}, z{v} { }
     vec3i(int x, int y, int z) : x{x}, y{y}, z{z} { }
     typedef int scalar_t;
     inline int &operator[](int i) { return (&x)[i]; }
@@ -403,5 +403,7 @@ namespace umesh {
 #undef osp_snprintf
   
   inline vec3f::vec3f(const vec3i &v) : x{(float)v.x}, y{(float)v.y}, z{(float)v.z} { }
+
+  inline float length(const vec3f &v) { return sqrtf(dot(v,v)); }
 
 } // ::pbrt

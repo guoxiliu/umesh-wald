@@ -20,6 +20,21 @@
 #include "io/IO.h"
 #include <sstream>
 
+
+#ifndef PRINT
+#ifdef __CUDA_ARCH__
+# define PRINT(va) /**/
+# define PING /**/
+#else
+# define PRINT(var) std::cout << #var << "=" << var << std::endl;
+#ifdef __WIN32__
+# define PING std::cout << __FILE__ << "::" << __LINE__ << ": " << __FUNCTION__ << std::endl;
+#else
+# define PING std::cout << __FILE__ << "::" << __LINE__ << ": " << __PRETTY_FUNCTION__ << std::endl;
+#endif
+#endif
+#endif
+
 namespace umesh {
   
   const size_t bum_magic = 0x234235567ULL;
@@ -48,7 +63,7 @@ namespace umesh {
     io::writeElement(out,bum_magic);
     io::writeVector(out,vertices);
 
-    // iw - changed that wto write 'numPerVertex' rather than always
+    // iw - changed that to write 'numPerVertex' rather than always
     // write one - this allows for later switching to more than one
     // attribute
     if (perVertex) {

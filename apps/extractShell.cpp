@@ -34,7 +34,21 @@ namespace umesh {
     if (fileName.substr(fileName.size()-6) == ".umesh") return UMESH;
     return INVALID;
   }
-  
+
+  inline bool flat(const vec3f &a,
+                   const vec3f &b,
+                   const vec3f &c,
+                   const vec3f &d)
+  {
+    vec3f n0 = cross(b-a,c-a);
+    if (dot(n0,n0) == 0.f) return false;
+    vec3f n1 = cross(c-a,d-a);
+    if (dot(n1,n1) == 0.f) return false;
+
+    n0 = normalize(n0);
+    n1 = normalize(n1);
+    return dot(n0,n1) >= .99f;
+  }
   void saveToOBJ(const std::string &outFileName, UMesh::SP mesh)
   {
     std::cout << "... saving (in OBJ format) to " << outFileName << std::endl;
@@ -43,6 +57,37 @@ namespace umesh {
       out << "v " << vtx.x << " " << vtx.y << " " << vtx.z << std::endl;
     for (auto idx : mesh->triangles)
       out << "f " << (idx.x+1) << " " << (idx.y+1) << " " << (idx.z+1) << std::endl;
+    for (auto idx : mesh->quads) {
+      vec3f v0 = mesh->vertices[idx.x];
+      vec3f v1 = mesh->vertices[idx.y];
+      vec3f v2 = mesh->vertices[idx.z];
+      vec3f v3 = mesh->vertices[idx.w];
+      if (flat(v0,v1,v2,v3)) {
+        out << "f " << (idx.x+1) << " " << (idx.y+1) << " " << (idx.z+1) << " " << (idx.w+1) << std::endl;
+      } else {
+        // write mini-bilinear patch of NxN vertices ((N-1)x(N-1) quads)
+        int N = 6;
+        for (int ix=0;ix<N;ix++)
+          for (int iy=0;iy<N;iy++) {
+            float u = ix / float(N-1);
+            float v = iy / float(N-1);
+            vec3f p
+              = (1.f-u)*(1.f-v)*v0
+              + (1.f-u)*(    v)*v1
+              + (    u)*(1.f-v)*v3
+              + (    u)*(    v)*v2
+              ;
+            out << "v " << p.x << " " << p.y << " " << p.z << std::endl;
+          }
+        for (int ix=0;ix<N-1;ix++)
+          for (int iy=0;iy<N-1;iy++) {
+            out << "f " << ((ix+0)*N+(iy+0)-N*N)
+                << "  " << ((ix+1)*N+(iy+0)-N*N)
+                << "  " << ((ix+1)*N+(iy+1)-N*N)
+                << "  " << ((ix+0)*N+(iy+1)-N*N) << std::endl;
+          }
+      }
+    }
     std::cout << "... done" << std::endl;
   }
 
@@ -76,7 +121,7 @@ namespace umesh {
         else if (arg[0] != '-')
           inFileName = arg;
         else {
-          throw std::runtime_error("./umeshDumpSurfaceMesh <in.umesh> [--obj|--umesh] -o <out.obj|.umesh>");
+          throw std::runtime_error("./umeshExtractShell <in.umesh> [--obj|--umesh] -o <out.obj|.umesh>");
         }
       }
 
