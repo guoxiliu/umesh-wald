@@ -16,6 +16,7 @@
 
 #include "umesh/UMesh.h"
 #include "umesh/io/IO.h"
+#include "umesh/check.h"
 // #include "tetty/UMesh.h"
 #include <set>
 #include <map>
@@ -77,7 +78,11 @@ namespace umesh {
   //   }
   // }
 
+
 namespace umesh {
+
+  std::map<vec3i,std::vector<std::pair<vec4i,int>>> alreadyGeneratedFaces;
+  
   struct Exa {
     struct LogicalCell {
       inline box3f bounds() const
@@ -206,7 +211,7 @@ namespace umesh {
   // managing output vertex and scalar generation
   // ##################################################################
 
-  std::map<vec4f,int> vertexIndex;
+  std::map<vec3f,int> vertexIndex;
   std::mutex vertexMutex;
 
   std::shared_ptr<UMesh> output;
@@ -216,7 +221,7 @@ namespace umesh {
   {
     std::lock_guard<std::mutex> lock(vertexMutex);
 
-    auto it = vertexIndex.find(v);
+    auto it = vertexIndex.find((const vec3f&)v);
     if (it != vertexIndex.end()) return it->second;
   
     size_t newID = output->vertices.size();
@@ -228,7 +233,7 @@ namespace umesh {
       throw std::runtime_error("vertex index overflow ...");
     }
   
-    vertexIndex[v] = (int)newID;
+    vertexIndex[(const vec3f&)v] = (int)newID;
     return newID;
   }
 
@@ -307,6 +312,29 @@ namespace umesh {
               << std::endl;
   }
 
+
+  void sanityCheckFace(vec3i face, const vec4i &tet, int pyrTop)
+  {
+    static std::mutex mutex;
+    std::sort(&face.x,&face.x+3);
+
+    std::lock_guard<std::mutex> lock(mutex);
+    alreadyGeneratedFaces[face].push_back({tet,pyrTop});
+    if (alreadyGeneratedFaces[face].size() > 2) {
+      PRINT(face);
+      for (auto prim : alreadyGeneratedFaces[face]) {
+        PRINT(prim.first);
+        PRINT(prim.second);
+      }
+      throw std::runtime_error("face generated more than once!");
+      exit(1);
+    }
+  }
+  void sanityCheckTet(const vec4i &tet)
+  {
+    sanityCheckFace({tet.x,tet.y,tet.z},tet,-1);
+  }
+  
   void emitTet(const vec4f &A,
                const vec4f &B,
                const vec4f &C,
@@ -325,7 +353,9 @@ namespace umesh {
     assert(tet.y != tet.w);
 
     assert(tet.z != tet.w);
-  
+
+    sanityCheckTet(tet);
+    
     std::lock_guard<std::mutex> lock(outputMutex);
     output->tets.push_back({(int)tet.x, (int)tet.y, (int)tet.z, (int)tet.w});
   
@@ -354,7 +384,12 @@ namespace umesh {
       numPyramidsPerfect++;
     else
       numPyramidsTwisted++;
-  
+
+    sanityCheckFace({pyr[0],pyr[1],pyr[4]},(const vec4i&)pyr, pyr[4]);
+    sanityCheckFace({pyr[1],pyr[2],pyr[4]},(const vec4i&)pyr, pyr[4]);
+    sanityCheckFace({pyr[2],pyr[3],pyr[4]},(const vec4i&)pyr, pyr[4]);
+    sanityCheckFace({pyr[3],pyr[0],pyr[4]},(const vec4i&)pyr, pyr[4]);
+    
     std::lock_guard<std::mutex> lock(outputMutex);
     output->pyrs.push_back(pyr);
 
@@ -387,8 +422,8 @@ namespace umesh {
     // wedge.top[2]  = findOrEmitVertex(top1);
 
     if (isPlanarQuadFace(base00,base01,base10,base11) &&
-        isPlanarQuadFace(top0,top1,base00,base01) &&
-        isPlanarQuadFace(top0,top1,base10,base11))
+        isPlanarQuadFace(top0,top1,base00,base10) &&
+        isPlanarQuadFace(top0,top1,base01,base11))
       numWedgesPerfect++;
     else
       numWedgesTwisted++;
@@ -464,6 +499,18 @@ namespace umesh {
                   const vec4f &base10,
                   const vec4f &base11)
   {
+    // apparentlythis does happen:
+    if ((base00 == base11) ||
+        (base10 == base01)) {
+      PRINT(top);
+      PRINT(base00);
+      PRINT(base01);
+      PRINT(base10);
+      PRINT(base11);
+      throw std::runtime_error("really!?");
+      return;
+    }
+    
     if (base00 == base01) {
       tryTet(top,base00,base10,base11);
       return;
@@ -493,6 +540,7 @@ namespace umesh {
                 int numDuplicates)
   {
     if (numDuplicates == 2) {
+      // std::cout << "REAL wedge" << std::endl;
       emitWedge(top0,top1,base00,base01,base10,base11);
       return;
     }
@@ -502,8 +550,9 @@ namespace umesh {
     // single point - which it isn't, or it'd have been catched in the
     // pyramid cases. As such, the bottom is either a triangle, or
     // totally degenerate, but etiher way we can tessellate it into tets
+    // std::cout << "splittin wedge into pyramid plus tet..." << std::endl;
     tryTet(top0,top1,base10,base11);
-    tryPyramid(top0,base00,base10,base10,base11);
+    tryPyramid(top0,base00,base01,base10,base11);
   }
 
 
@@ -684,7 +733,9 @@ namespace umesh {
             emitHex(vertex,/*perfect:*/false);
             return;
           }
-        
+
+          if (numDuplicates > 5) return;
+          
           // ==================================================================
           // check whether an entire face completely collapsed - then
           // it's a pyramid, a tet, or degenerate
@@ -830,11 +881,11 @@ namespace umesh {
         break;
     
       exa.add(cell);
-      static size_t nextPing = 1;
-      if (exa.size() >= nextPing) {
-        std::cout << "read so far : " << exa.size() << ", bounds " << exa.bounds << std::endl;
-        nextPing *= 2;
-      }
+      // static size_t nextPing = 1;
+      // if (exa.size() >= nextPing) {
+      //   std::cout << "read so far : " << exa.size() << ", bounds " << exa.bounds << std::endl;
+      //   nextPing *= 2;
+      // }
     }
     std::cout << "done reading, found " << prettyNumber(exa.size()) << " cells" << std::endl;
 
@@ -843,6 +894,7 @@ namespace umesh {
     process(exa);
 
     output->finalize();
+    sanityCheck(output);
     //io::saveBinaryUMesh(outFileName,output);
     output->saveTo(outFileName);
   }

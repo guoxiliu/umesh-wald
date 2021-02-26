@@ -136,6 +136,41 @@ namespace umesh {
         }
       }
     }
+
+    // ok, let's go crazy here - create list of all tet faces, and
+    // check that none is used more than twice.
+    std::cout << "sanity checking for duplicate tri faces..." << std::flush;
+    std::map<vec3i,int> triFaceCounts;
+    for (auto p : mesh->tets) {
+      std::vector<vec3i> faces;
+      faces.push_back({p.x,p.y,p.z});
+      faces.push_back({p.x,p.y,p.w});
+      faces.push_back({p.x,p.z,p.w});
+      faces.push_back({p.y,p.z,p.w});
+      for (auto face : faces) {
+        std::sort(&face.x,&face.x+3);
+        triFaceCounts[face]++;
+        if (triFaceCounts[face] > 2)
+          throw std::runtime_error("tri face is used more than twice...");
+      }
+    }
+
+
+    for (auto p : mesh->pyrs) {
+      std::vector<vec3i> faces;
+      faces.push_back({p[0],p[1],p[4]});
+      faces.push_back({p[1],p[2],p[4]});
+      faces.push_back({p[2],p[3],p[4]});
+      faces.push_back({p[3],p[0],p[4]});
+      for (auto face : faces) {
+        std::sort(&face.x,&face.x+3);
+        triFaceCounts[face]++;
+        if (triFaceCounts[face] > 2)
+          throw std::runtime_error("tri face is used more than twice...");
+      }
+    }
+    std::cout << " passed" << std::endl;
+
   }
   
 } // :: umesh

@@ -579,9 +579,9 @@ namespace umesh {
   inline bool offending(T t)
   {
     return
+      contains(t,0) &&
       contains(t,2) &&
-      contains(t,3) &&
-      contains(t,4);
+      contains(t,3);
   }
 #endif
   
@@ -609,24 +609,24 @@ namespace umesh {
         for (int i=0;i<prim.numVertices;i++)
           PRINT(input->vertices[prim[i]]);
       }
-    for (auto prim : input->pyrs)
-      if (offending(prim)) {
-        PRINT(prim);
-        for (int i=0;i<prim.numVertices;i++)
-          PRINT(input->vertices[prim[i]]);
-      }
-    for (auto prim : input->wedges)
-      if (offending(prim)) {
-        PRINT(prim);
-        for (int i=0;i<prim.numVertices;i++)
-          PRINT(input->vertices[prim[i]]);
-      }
-    for (auto prim : input->hexes)
-      if (offending(prim)) {
-        PRINT(prim);
-        for (int i=0;i<prim.numVertices;i++)
-          PRINT(input->vertices[prim[i]]);
-      }
+    // for (auto prim : input->pyrs)
+    //   if (offending(prim)) {
+    //     PRINT(prim);
+    //     for (int i=0;i<prim.numVertices;i++)
+    //       PRINT(input->vertices[prim[i]]);
+    //   }
+    // for (auto prim : input->wedges)
+    //   if (offending(prim)) {
+    //     PRINT(prim);
+    //     for (int i=0;i<prim.numVertices;i++)
+    //       PRINT(input->vertices[prim[i]]);
+    //   }
+    // for (auto prim : input->hexes)
+    //   if (offending(prim)) {
+    //     PRINT(prim);
+    //     for (int i=0;i<prim.numVertices;i++)
+    //       PRINT(input->vertices[prim[i]]);
+    //   }
 #endif
     
     std::vector<SharedFace> faces
