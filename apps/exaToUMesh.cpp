@@ -318,6 +318,9 @@ namespace umesh {
 
   void sanityCheckFace(vec3i face, const vec4i &tet, int pyrTop)
   {
+#if 1
+    return;
+#else
     static std::mutex mutex;
     std::sort(&face.x,&face.x+3);
 
@@ -332,6 +335,7 @@ namespace umesh {
       throw std::runtime_error("face generated more than once!");
       exit(1);
     }
+#endif
   }
   void sanityCheckTet(const vec4i &tet)
   {
