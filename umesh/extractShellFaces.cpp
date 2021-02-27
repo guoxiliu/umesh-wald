@@ -487,7 +487,7 @@ namespace umesh {
                         const uint64_t *faceIndices,
                         size_t numFacets)
   {
-#if 1
+#if 0
     for (size_t i=0;i<numFacets;i++)
       facetsWriteFacesKernel(faces,facets,faceIndices,i);
 #else
@@ -640,7 +640,7 @@ namespace umesh {
     return result;
   }
 
-#if 1
+#if 0
   // only use for debugging, to force priting of prims that contain certain vertices or faces
   template<typename T>
   inline bool contains(T t, int ID)
@@ -676,7 +676,7 @@ namespace umesh {
                                 original input mesh */
                               bool remeshVertices)
   {
-#if 1
+#if 0
     // dbg_input = input;
     assert(input);
     for (auto prim : input->tets)
