@@ -320,7 +320,7 @@ namespace umesh {
 
 
 
-#if 1
+#if 0
   // only use for debugging, to force priting of prims that contain certain vertices or faces
 
   template<typename T>
@@ -376,7 +376,7 @@ namespace umesh {
   */
   UMesh::SP tetrahedralize(UMesh::SP in)
   {
-#if 1
+#if 0
     // for (auto vtx : in->vertices)
     //   PRINT(vtx);
     PING;
@@ -473,7 +473,7 @@ namespace umesh {
       sides, and pass through all those that have flat sides. */
   UMesh::SP tetrahedralize_maintainFlatElements(UMesh::SP in)
   {
-#if 1
+#if 0
     PING;
     for (auto prim : in->tets)
       if (offending(in,prim)) {
