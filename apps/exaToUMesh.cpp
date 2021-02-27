@@ -63,23 +63,23 @@ namespace umesh {
   /*! if set, we will ONLY emit boundary elements */
   bool boundaryOnly = false;
 }
-  inline bool operator<(const umesh::Tet &a, const umesh::Tet &b)
-  {
-    const uint64_t *pa = (const uint64_t *)&a;
-    const uint64_t *pb = (const uint64_t *)&b;
-    const bool res =  (pa[0] < pb[0]) || ((pa[0] == pb[0]) && (pa[1] < pb[1]));
-    return res;
-  }
-  // namespace std {
-  //   inline bool operator<(const umesh::vec4f a, const umesh::vec4f b)
-  //   {
-  //     for (int i=0;i<4;i++) {
-  //       if (a[i] < b[i]) return true;
-  //       if (a[i] > b[i]) return false;
-  //     }
-  //     return false;
-  //   }
-  // }
+inline bool operator<(const umesh::Tet &a, const umesh::Tet &b)
+{
+  const uint64_t *pa = (const uint64_t *)&a;
+  const uint64_t *pb = (const uint64_t *)&b;
+  const bool res =  (pa[0] < pb[0]) || ((pa[0] == pb[0]) && (pa[1] < pb[1]));
+  return res;
+}
+// namespace std {
+//   inline bool operator<(const umesh::vec4f a, const umesh::vec4f b)
+//   {
+//     for (int i=0;i<4;i++) {
+//       if (a[i] < b[i]) return true;
+//       if (a[i] > b[i]) return false;
+//     }
+//     return false;
+//   }
+// }
 
 
 namespace umesh {
@@ -489,10 +489,10 @@ namespace umesh {
 
 
   /*! if this gets called we know that one side of a general dual cell
-      has collapsed into a single vertex (the 'top' here), but the
-      other four could still have duplicates .... we further do know
-      that the base face has NOT collapsed completely (else we'd have
-      had more than 5 duplicates, which gets tested first) */
+    has collapsed into a single vertex (the 'top' here), but the
+    other four could still have duplicates .... we further do know
+    that the base face has NOT collapsed completely (else we'd have
+    had more than 5 duplicates, which gets tested first) */
   void tryPyramid(const std::array<vec4f,4> &base,
                   const vec4f &top,
                   int numUniqueVertices)
@@ -600,29 +600,29 @@ namespace umesh {
 
 
   /*! if this gets called we know that at least one face has collapsed
-      to an edge, but that NOT an entire face has collapsed (the
-      latter was tested before testing for edges). so we know that the
-      front[2] and back[2] must be different (else that face would
-      have collapsed)...BUT we could still have other collapses going
-      on on the 'base' spanned by front[0],front[1],back[0],back[1]
-      (vertices 0,1,3,4 in vtk corder) */
+    to an edge, but that NOT an entire face has collapsed (the
+    latter was tested before testing for edges). so we know that the
+    front[2] and back[2] must be different (else that face would
+    have collapsed)...BUT we could still have other collapses going
+    on on the 'base' spanned by front[0],front[1],back[0],back[1]
+    (vertices 0,1,3,4 in vtk corder) */
   void tryWedge(const std::array<vec4f,8> &corner,
-                 const vec3i &frontIdx,
-                 const vec3i &backIdx,
-                 int numUniqueVertices)
+                const vec3i &frontIdx,
+                const vec3i &backIdx,
+                int numUniqueVertices)
   {
     // if (numUniqueVertices == 6) {
-      // have 6 vertices, and already know the two that collapsed, so
-      // MUST be a wedge - possibly curved faces, but that's a
-      // differnt story.
-      emitWedge
-        ({corner[frontIdx.x],
-          corner[frontIdx.y],
-          corner[frontIdx.z]},
-          {corner[backIdx.x],
-           corner[backIdx.y],
-           corner[backIdx.z]});
-      return;
+    // have 6 vertices, and already know the two that collapsed, so
+    // MUST be a wedge - possibly curved faces, but that's a
+    // differnt story.
+    emitWedge
+      ({corner[frontIdx.x],
+        corner[frontIdx.y],
+        corner[frontIdx.z]},
+        {corner[backIdx.x],
+         corner[backIdx.y],
+         corner[backIdx.z]});
+    return;
     // }
 
     // if (numUniqueVertices == 5) {
@@ -740,7 +740,7 @@ namespace umesh {
     const int cellWidth = (1<<cell.level);
     bool dbg = false;
     
-    if (cell.center() == vec3f(1,1,9)) dbg = true;
+    // if (cell.center() == vec3f(1,1,9)) dbg = true;
     
     for (int dz=-1;dz<=1;dz+=2)
       for (int dy=-1;dy<=1;dy+=2)
@@ -829,23 +829,23 @@ namespace umesh {
           std::array<vec4f,8> v;
           if ((dx<0) ^ (dy<0) ^ (dz<0)) {
             // hex is mirrored an un-even time, so has negative volume... swap
-          v[0] = vertex[1][0][0];
-          v[1] = vertex[1][0][1];
-          v[2] = vertex[1][1][1];
-          v[3] = vertex[1][1][0];
-          v[4] = vertex[0][0][0];
-          v[5] = vertex[0][0][1];
-          v[6] = vertex[0][1][1];
-          v[7] = vertex[0][1][0];
+            v[0] = vertex[1][0][0];
+            v[1] = vertex[1][0][1];
+            v[2] = vertex[1][1][1];
+            v[3] = vertex[1][1][0];
+            v[4] = vertex[0][0][0];
+            v[5] = vertex[0][0][1];
+            v[6] = vertex[0][1][1];
+            v[7] = vertex[0][1][0];
           } else {
-          v[0] = vertex[0][0][0];
-          v[1] = vertex[0][0][1];
-          v[2] = vertex[0][1][1];
-          v[3] = vertex[0][1][0];
-          v[4] = vertex[1][0][0];
-          v[5] = vertex[1][0][1];
-          v[6] = vertex[1][1][1];
-          v[7] = vertex[1][1][0];
+            v[0] = vertex[0][0][0];
+            v[1] = vertex[0][0][1];
+            v[2] = vertex[0][1][1];
+            v[3] = vertex[0][1][0];
+            v[4] = vertex[1][0][0];
+            v[5] = vertex[1][0][1];
+            v[6] = vertex[1][1][1];
+            v[7] = vertex[1][1][0];
           }
 
           if (dbg) {
@@ -1035,7 +1035,7 @@ namespace umesh {
           // ==================================================================
           emitHex(v,/*perfect:*/false);
           continue;
-            // return;
+          // return;
         }
   }
   
