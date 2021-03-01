@@ -523,7 +523,7 @@ namespace umesh {
 
     std::chrono::steady_clock::time_point
       begin_exc = std::chrono::steady_clock::now();
-    
+
     // -------------------------------------------------------
     size_t numFacets
       = 4 * mesh.numTets
@@ -549,9 +549,10 @@ namespace umesh {
     postfixSum(faceIndices.data(),numFacets);
     // -------------------------------------------------------
     size_t numFaces = faceIndices[numFacets-1];
-    std::vector<SharedFace> faces;
+    std::vector<SharedFace> faces(numFaces);
     // SharedFace *faces = result.data();//allocateFaces(result,numFaces);
     clearFaces(faces.data(),numFaces);
+    PRINT(faces.size());
     
     // -------------------------------------------------------
     facetsWriteFaces(faces.data(),facets.data(),faceIndices.data(),numFacets);
