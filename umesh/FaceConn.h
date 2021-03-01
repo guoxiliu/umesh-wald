@@ -71,9 +71,22 @@ namespace umesh {
         faces, but will error out for meshes with bad connectivyt
         (faces with more than two owning prims) */
     static FaceConn::SP compute(UMesh::SP mesh);
+
+    /*! write - binary - to given file */
+    void saveTo(const std::string &fileName) const;
     
-    /*! the mesh that this face-connectivty belongs to */
-    UMesh::SP mesh;
+    /*! read from given file, assuming file format as used by saveTo() */
+    static FaceConn::SP loadFrom(const std::string &fileName);
+    
+    /*! write - binary - to given file */
+    void write(std::ostream &out) const;
+    
+    /*! read from given file, assuming file format as used by saveTo() */
+    void read(std::istream &in);
+
+    
+    // /*! the mesh that this face-connectivty belongs to */
+    // UMesh::SP mesh;
     
     /*! the list of all faces in the given umesh; each tagged with the
         prim on the front resp back side of that face. each face can

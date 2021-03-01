@@ -15,6 +15,7 @@
 // ======================================================================== //
 
 #include "FaceConn.h"
+#include "umesh/io/IO.h"
 
 # ifdef UMESH_HAVE_TBB
 #  include "tbb/parallel_sort.h"
@@ -22,6 +23,7 @@
 #include <set>
 #include <algorithm>
 #include <string.h>
+#include <fstream>
 
 #ifndef PRINT
 #ifdef __CUDA_ARCH__
@@ -567,9 +569,36 @@ namespace umesh {
   FaceConn::SP FaceConn::compute(UMesh::SP input)
   {
     FaceConn::SP faceConn = std::make_shared<FaceConn>();
-    faceConn->mesh  = input;
     faceConn->faces = computeFaces(input);
     return faceConn;
   }
+
+  /*! write - binary - to given file */
+  void FaceConn::write(std::ostream &out) const
+  {
+    io::writeVector(out,faces);
+  }
   
+  /*! read from given file, assuming file format as used by saveTo() */
+  void FaceConn::read(std::istream &in)
+  {
+    io::readVector(in,faces);
+  }
+
+  /*! write - binary - to given file */
+  void FaceConn::saveTo(const std::string &fileName) const
+  {
+    std::ofstream out(fileName,std::ios::binary);
+    write(out);
+  }
+
+  /*! read from given file, assuming file format as used by saveTo() */
+  FaceConn::SP FaceConn::loadFrom(const std::string &fileName)
+  {
+    FaceConn::SP conn = std::make_shared<FaceConn>();
+    std::ifstream in(fileName,std::ios::binary);
+    conn->read(in);
+    return conn;
+  }
+    
 } // ::umesh
