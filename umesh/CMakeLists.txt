@@ -33,6 +33,8 @@ add_library(umesh
   TetConn.h
   TetConn.cpp
 
+  FaceConn.h
+  FaceConn.cpp
   
   # ------------------------------------------------------------------
   # I/O routines that can directly read into a umesh class
