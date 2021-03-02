@@ -95,4 +95,5 @@ namespace umesh {
     std::vector<SharedFace> faces;
   };
 
+  std::ostream &operator<<(std::ostream &out, const FaceConn::PrimFacetRef &ref);
 } // ::umesh
