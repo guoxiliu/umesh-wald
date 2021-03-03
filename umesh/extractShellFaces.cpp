@@ -75,6 +75,61 @@ namespace umesh {
     assert(faces.empty() || !input->vertices.empty());
     UMesh::SP output = std::make_shared<UMesh>();
 
+#if 1
+    output->vertices = input->vertices;
+    if (input->perVertex)  {
+      output->perVertex = std::make_shared<Attribute>();
+      output->perVertex->name = input->perVertex->name;
+      output->perVertex->values = input->perVertex->values;
+    }
+
+    for (auto &face: faces) {
+      if (face.vertexIdx.x < 0)
+        // invalid face
+        continue;
+      
+      if (face.onFront.primIdx < 0 && face.onBack.primIdx < 0) {
+        PRINT(face.vertexIdx);
+        throw std::runtime_error("face that has BOTH sides unused!?");
+      } else if (face.onFront.primIdx < 0) {
+        if (face.vertexIdx.w < 0) {
+          // SWAP
+          vec3i tri(face.vertexIdx.x,
+                    face.vertexIdx.z,
+                    face.vertexIdx.y);
+          output->triangles.push_back(tri);
+        } else {
+          // SWAP
+          vec4i quad(face.vertexIdx.x,
+                     face.vertexIdx.w,
+                     face.vertexIdx.z,
+                     face.vertexIdx.y);
+          output->quads.push_back(quad);
+        }
+      } else if (face.onBack.primIdx < 0) {
+        if (face.vertexIdx.w < 0) {
+          // NO SWAP
+          vec3i tri(face.vertexIdx.x,
+                    face.vertexIdx.y,
+                    face.vertexIdx.z);
+          output->triangles.push_back(tri);
+        } else {
+          // NO SWAP
+          vec4i quad(face.vertexIdx.x,
+                     face.vertexIdx.y,
+                     face.vertexIdx.z,
+                     face.vertexIdx.w);
+          output->quads.push_back(quad);
+        }
+      } else {
+        /* inner face ... ignore */
+      }
+    }
+    if (remeshVertices)
+      removeUnusedVertices(output);
+#else
+    
+    
     RemeshHelper helper(*output);
     for (auto &face: faces) {
       if (face.vertexIdx.x < 0)
@@ -126,6 +181,7 @@ namespace umesh {
         /* inner face ... ignore */
       }
     }
+#endif
     // dbg_input = 0;
     return output;
   }

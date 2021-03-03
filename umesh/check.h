@@ -18,13 +18,22 @@
 
 #include "UMesh.h"
 
+#ifdef NDEBUG
+#else
+#  define UMESH_ENABLE_SANITY_CHECKS 1
+#endif
 namespace umesh {
 
   /* if specified, the sanity checker will ignore 'no volume prims' */
 #define CHECK_FLAG_MESH_IS_SURFACE (1<<0)
-  
+
+#if UMESH_ENABLE_SANITY_CHECKS
   /*! perform some sanity checking of the given mesh (checking indices
     are valid, etc) */
   void sanityCheck(UMesh::SP umesh, uint32_t flags = 0);
+#else
+  inline void sanityCheck(UMesh::SP umesh, uint32_t flags = 0)
+  { /* sanity checks disabled by flag */ }
+#endif
   
 } // :: umesh

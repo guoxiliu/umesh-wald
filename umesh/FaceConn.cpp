@@ -110,28 +110,46 @@ namespace umesh {
     size_t numHexes;
   };
 
+  inline int numUniqueVertices(vec3i v)
+  {
+    std::sort(&v.x,&v.x+3);
+    int cnt = 1;
+    for (int i=1;i<3;i++)
+      if (v[i] != v[i-1]) cnt++;
+    return cnt;
+  }
+  inline int numUniqueVertices(vec4i v)
+  {
+    std::sort(&v.x,&v.x+4);
+    int cnt = 1;
+    for (int i=1;i<4;i++)
+      if (v[i] != v[i-1]) cnt++;
+    return cnt;
+  }
+  
   // ==================================================================
   // compute vertex order stage
   // ==================================================================
-
+  
   /*! computes a unique vertex order such that two different prims
-      that share the same face - but have written thie facets with
-      differnetly ordered vertex indices - will end up with the same
-      vector of indices. of course, re-ordeirng indices can change
-      orientation, which this function keeps track of */
+    that share the same face - but have written thie facets with
+    differnetly ordered vertex indices - will end up with the same
+    vector of indices. of course, re-ordeirng indices can change
+    orientation, which this function keeps track of */
   inline 
   void computeUniqueVertexOrder(Facet &facet)
   {
     vec4i idx = facet.vertexIdx;
     // \todo optimize this - all we need is detect the number of
     // unique vertices, for which this is overkill
-    std::set<int> uniqueIDs;
-    uniqueIDs.insert(idx.x);
-    uniqueIDs.insert(idx.y);
-    uniqueIDs.insert(idx.z);
+    // std::set<int> uniqueIDs;
+    // uniqueIDs.insert(idx.x);
+    // uniqueIDs.insert(idx.y);
+    // uniqueIDs.insert(idx.z);
     
     if (idx.w < 0) {
-      if (uniqueIDs.size() < 3) {
+      int numUnique = numUniqueVertices((const vec3i&)idx);
+      if (numUnique < 3) {
         facet.vertexIdx = vec4i(-1);
         return;
       }
@@ -142,14 +160,15 @@ namespace umesh {
       if (idx.z < idx.y)
         { swap(idx.y,idx.z); facet.orientation = 1-facet.orientation; }
     } else {
-      uniqueIDs.insert(idx.w);
-
-      if (uniqueIDs.size() == 2) {
+      // uniqueIDs.insert(idx.w);
+      int numUnique = numUniqueVertices(idx);
+      
+      if (numUnique == 2) {
         facet.vertexIdx = vec4i(-1);
         return;
       }
       
-      if (uniqueIDs.size() == 3) {
+      if (numUnique == 3) {
         if (idx.x==idx.y) {
           idx = { idx.x, idx.z, idx.w, -1 };
         } else if (idx.x == idx.z) {
@@ -213,8 +232,8 @@ namespace umesh {
   // ==================================================================
   
   /*! writes the four facets of a tet; for degenerate tets that may
-      end up with faces that collapse to points or lines - that's OK,
-      as it'll be fixed later on in computeUniqueVertexOrder() */
+    end up with faces that collapse to points or lines - that's OK,
+    as it'll be fixed later on in computeUniqueVertexOrder() */
   inline 
   void writeTetFacets(Facet *facets,
                       size_t tetIdx,
@@ -235,9 +254,9 @@ namespace umesh {
   }
   
   /*! writes the five facets of a pyrs; for degenerate pyramids thta
-      may end up with quads that become triangles, and/or entire faces
-      that collapse to points or lines - that's OK, as it'll be fixed
-      later on in computeUniqueVertexOrder() */
+    may end up with quads that become triangles, and/or entire faces
+    that collapse to points or lines - that's OK, as it'll be fixed
+    later on in computeUniqueVertexOrder() */
   inline 
   void writePyrFacets(Facet *facets,
                       size_t pyrIdx,
@@ -259,9 +278,9 @@ namespace umesh {
   }
 
   /*! writes the five facets of a wedge; for degenerate wedges thta
-      may end up with quads that become triangles, and/or entire faces
-      that collapse to points or lines - that's OK, as it'll be fixed
-      later on in computeUniqueVertexOrder() */
+    may end up with quads that become triangles, and/or entire faces
+    that collapse to points or lines - that's OK, as it'll be fixed
+    later on in computeUniqueVertexOrder() */
   inline 
   void writeWedgeFacets(Facet *facets,
                         size_t wedgeIdx,
@@ -289,9 +308,9 @@ namespace umesh {
   }
   
   /*! writes the five facets of a hexes; for degenerate hexes that may
-      end up with quads that become triangles, and/or entire faces
-      that collapse to points or lines - that's OK, as it'll be fixed
-      later on in computeUniqueVertexOrder() */
+    end up with quads that become triangles, and/or entire faces
+    that collapse to points or lines - that's OK, as it'll be fixed
+    later on in computeUniqueVertexOrder() */
   inline 
   void writeHexFacets(Facet *facets,
                       size_t hexIdx,
@@ -322,7 +341,7 @@ namespace umesh {
   }
 
   /*! writes the facets given by the parallel launch that runs over
-      all facets in the model */
+    all facets in the model */
   inline 
   void writeFacets(Facet *facets, size_t jobIdx, const InputMesh &mesh)
   {
@@ -381,9 +400,11 @@ namespace umesh {
   void sortFacets(Facet *facets, size_t numFacets)
   {
 # ifdef UMESH_HAVE_TBB
+    std::cout << "parallel face sorting" << std::endl;
     tbb::parallel_sort(facets,facets+numFacets,FacetComparator());
+    std::cout << "done face sorting" << std::endl;
 # else
-    std::sort(facets,facets+numFacets,FacetComparator());
+    std::sort(facets,facets+numFacets,FacoetComparator());
 # endif
   }
   
@@ -412,9 +433,9 @@ namespace umesh {
   // ==================================================================
   inline 
   void facetsWriteFacesKernel(SharedFace *faces,
-                             const Facet *facets,
-                             const uint64_t *faceIndices,
-                             size_t facetIdx)
+                              const Facet *facets,
+                              const uint64_t *faceIndices,
+                              size_t facetIdx)
   {
     const Facet facet = facets[facetIdx];
 
@@ -478,14 +499,23 @@ namespace umesh {
       faces[i].vertexIdx = vec4i(-1);
     }
   }
+  
   void initFaceIndices(uint64_t *faceIndices,
                        Facet *facets,
                        size_t numFacets)
   {
-    for (size_t i=0;i<numFacets;i++) {
-      initFaceIndexKernel(faceIndices,facets,i);
-    }
+    parallel_for_blocked
+      (0,numFacets,1024,
+       [&](size_t begin, size_t end) {
+         for (size_t i=begin;i<end;i++)
+           initFaceIndexKernel(faceIndices,facets,i);
+       });
+    
+    //  for (size_t i=0;i<numFacets;i++) {
+    // initFaceIndexKernel(faceIndices,facets,i);
+    // }
   }
+  
   /*! not parallelized... this will likely be mem bound, anyway */
   void prefixSum(uint64_t *faceIndices,
                  size_t numFacets)
@@ -513,7 +543,7 @@ namespace umesh {
   // aaaand ... wrap it all together
   // ==================================================================
 
-  std::vector<SharedFace> computeFaces(UMesh::SP input)
+std::vector<SharedFace> computeFaces(UMesh::SP input)
   {
     assert(input);
     std::chrono::steady_clock::time_point
@@ -552,7 +582,6 @@ namespace umesh {
     std::vector<SharedFace> faces(numFaces);
     // SharedFace *faces = result.data();//allocateFaces(result,numFaces);
     clearFaces(faces.data(),numFaces);
-    PRINT(faces.size());
     
     // -------------------------------------------------------
     facetsWriteFaces(faces.data(),facets.data(),faceIndices.data(),numFacets);
