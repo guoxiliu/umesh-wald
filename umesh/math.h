@@ -337,10 +337,16 @@ namespace umesh {
   }
   inline bool operator<(const vec3i &a, const vec3i &b)
   {
+#if 1
+    const uint64_t la = (const uint64_t &)a;
+    const uint64_t lb = (const uint64_t &)b;
+    return ((la < lb) || (la==lb && (const uint32_t&)a.z < (const uint32_t&)b.z));
+#else
     return
       (a.x<b.x) ||
       (a.x==b.x && a.y<b.y) ||
       (a.x==b.x && a.y==b.y && a.z<b.z);
+#endif
   }
   inline bool operator<(const vec4i &a, const vec4i &b)
   {

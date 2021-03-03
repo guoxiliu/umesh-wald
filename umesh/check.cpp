@@ -33,6 +33,7 @@ namespace umesh {
 #endif
 
   
+#if UMESH_ENABLE_SANITY_CHECKS
   /*! perform some sanity checking of the given mesh (checking indices
     are valid, etc) */
   void sanityCheck(UMesh::SP mesh, uint32_t flags)
@@ -172,5 +173,6 @@ namespace umesh {
     std::cout << " passed" << std::endl;
 
   }
+#endif
   
 } // :: umesh

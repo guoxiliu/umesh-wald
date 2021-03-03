@@ -72,4 +72,12 @@ namespace umesh {
     // std::vector<size_t> vertexTag;
   };
   
+  void removeDuplicatesAndUnusedVertices(UMesh::SP mesh);
+
+  /*! removed all vertices that are not used by any prim, and
+      re-indexes all prims with the new vertex/value array indices
+      after this compaction. CAREFUL: this function assumes that the mesh does
+      NOT have duplicate vertices */
+  void removeUnusedVertices(UMesh::SP mesh);
+
 } // ::tetty

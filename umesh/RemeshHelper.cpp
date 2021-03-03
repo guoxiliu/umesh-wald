@@ -15,6 +15,9 @@
 // ======================================================================== //
 
 #include "RemeshHelper.h"
+# ifdef UMESH_HAVE_TBB
+#  include "tbb/parallel_sort.h"
+# endif
 
 namespace umesh {
 
@@ -28,7 +31,7 @@ namespace umesh {
     where we also allow to specify a vertex "tag" for each input
     vertices. meshes should only ever get built with *either* this
     functoin of the one that uses a float scalar, not mixed */
-  uint32_t RemeshHelper::getID(const vec3f &v, size_t tag)
+   uint32_t RemeshHelper::getID(const vec3f &v, size_t tag)
   {
     auto it = knownVertices.find(v);
     if (it != knownVertices.end()) {
@@ -44,7 +47,7 @@ namespace umesh {
   /*! find ID of given vertex in target mesh (if it already exists),a
     nd return it; otherwise add vertex to target mesh, and return
     new ID */
-  uint32_t RemeshHelper::getID(const vec3f &v)
+   uint32_t RemeshHelper::getID(const vec3f &v)
   {
     assert(!target.perVertex);
     auto it = knownVertices.find(v);
@@ -64,7 +67,7 @@ namespace umesh {
     specify a vertex "tag" for each input vertices.  meshes should
     only ever get built with *either* this functoin of the one that
     uses a size_t tag, not mixed */
-  uint32_t RemeshHelper::getID(const vec3f &v, float scalar)
+   uint32_t RemeshHelper::getID(const vec3f &v, float scalar)
   {
     auto it = knownVertices.find(v);
     if (it != knownVertices.end()) {
@@ -82,7 +85,7 @@ namespace umesh {
   /*! given a vertex ID in another mesh, return an ID for the
    *output* mesh that corresponds to this vertex (add to output
    if not already present) */
-  uint32_t RemeshHelper::translate(const uint32_t in,
+   uint32_t RemeshHelper::translate(const uint32_t in,
                                    UMesh::SP otherMesh)
   {
     assert(otherMesh);
@@ -167,6 +170,223 @@ namespace umesh {
     } break;
     default:
       throw std::runtime_error("un-implemented prim type?");
+    }
+  }
+
+
+
+
+  struct BigVertex {
+    vec3f pos;
+    float scalar;
+    uint32_t orgID;
+    int active;;
+  };
+
+  inline bool operator<(const BigVertex &a,
+                        const BigVertex &b)
+  {
+    return a.pos < b.pos;
+  }
+  
+  void removeDuplicatesAndUnusedVertices(UMesh::SP mesh)
+  {
+    std::cout << "parallel reindexing : init for " << mesh->toString() << std::endl;
+    std::vector<BigVertex> vertices(mesh->vertices.size());
+
+    // generate list of _all_ vertices, in 'fat' layout that can easily be re-ordered
+    parallel_for_blocked
+      (0,vertices.size(),16*1024,
+       [&](size_t begin, size_t end) {
+         for (size_t i=begin;i<end;i++) {
+           vertices[i].pos = mesh->vertices[i];
+           vertices[i].scalar = mesh->perVertex->values[i];
+           vertices[i].orgID = i;
+           vertices[i].active = false;
+         }
+       });
+
+    // mark 
+    for (auto &prim : mesh->triangles) {
+      for (int i=0;i<prim.numVertices;i++)
+        vertices[prim[i]].active = true;
+    }
+    for (auto &prim : mesh->quads) {
+      for (int i=0;i<prim.numVertices;i++)
+        vertices[prim[i]].active = true;
+    }
+    parallel_for_blocked
+      (0,mesh->tets.size(),1024*64,
+       [&](size_t begin, size_t end){
+        for (size_t primID=begin;primID<end;primID++){
+          auto &prim = mesh->tets[primID];
+          for (int i=0;i<prim.numVertices;i++)
+            vertices[prim[i]].active = true;
+        }});
+    for (auto &prim : mesh->pyrs) {
+      for (int i=0;i<prim.numVertices;i++)
+        vertices[prim[i]].active = true;
+    }
+    for (auto &prim : mesh->wedges) {
+      for (int i=0;i<prim.numVertices;i++)
+        vertices[prim[i]].active = true;
+    }
+    for (auto &prim : mesh->hexes) {
+      for (int i=0;i<prim.numVertices;i++)
+        vertices[prim[i]].active = true;
+    }
+
+
+
+
+    
+
+
+    
+    std::cout << "parallel reindexing - sorting vertices to find duplicates" << std::endl;
+# ifdef UMESH_HAVE_TBB
+    tbb::parallel_sort(vertices.data(),vertices.data()+vertices.size());
+# else
+    std::sort(vertices.data(),vertices.data()+vertices.size());
+# endif
+
+    std::cout << "parallel reindexing - finding unique used vertices" << std::endl;
+    int curID = -1;
+    std::vector<int> newID(vertices.size());
+    for (size_t i=0;i<vertices.size();i++) {
+      if (!vertices[i].active) {
+        newID[vertices[i].orgID] = -1;
+        continue;
+      }
+      
+      if (i==0 || vertices[i].pos != vertices[i-1].pos)
+        ++curID;
+      
+      vertices[curID].pos = vertices[i].pos;
+      vertices[curID].scalar = vertices[i].scalar;
+      newID[vertices[i].orgID] = curID;
+    }
+    int numNewVertices = curID;
+    std::cout << "num vertices found : " << numNewVertices << std::endl;
+    mesh->vertices.resize(numNewVertices);
+    mesh->perVertex->values.resize(numNewVertices);
+    for (int i=0;i<numNewVertices;i++) {
+      mesh->vertices[i] = vertices[i].pos;
+      mesh->perVertex->values[i] = vertices[i].scalar;
+    }
+    vertices.clear();
+
+    std::cout << "parallel reindexing - translating indices" << std::endl;
+    for (auto &prim : mesh->triangles) {
+      for (int i=0;i<prim.numVertices;i++)
+        prim[i] = newID[prim[i]];
+    }
+    for (auto &prim : mesh->quads) {
+      for (int i=0;i<prim.numVertices;i++)
+        prim[i] = newID[prim[i]];
+    }
+    parallel_for_blocked
+      (0,mesh->tets.size(),1024*64,
+       [&](size_t begin, size_t end){
+        for (size_t primID=begin;primID<end;primID++){
+          auto &prim = mesh->tets[primID];
+          for (int i=0;i<prim.numVertices;i++)
+            prim[i] = newID[prim[i]];
+        }});
+    for (auto &prim : mesh->pyrs) {
+      for (int i=0;i<prim.numVertices;i++)
+        prim[i] = newID[prim[i]];
+    }
+    for (auto &prim : mesh->wedges) {
+      for (int i=0;i<prim.numVertices;i++)
+        prim[i] = newID[prim[i]];
+    }
+    for (auto &prim : mesh->hexes) {
+      for (int i=0;i<prim.numVertices;i++)
+        prim[i] = newID[prim[i]];
+    }
+  }
+
+  void removeUnusedVertices(UMesh::SP mesh)
+  {
+    std::vector<uint8_t> isUsed(mesh->vertices.size());
+    for (auto &flag : isUsed) flag = false;
+    
+    // mark 
+    for (auto &prim : mesh->triangles) {
+      for (int i=0;i<prim.numVertices;i++)
+        isUsed[prim[i]] = true;
+    }
+    for (auto &prim : mesh->quads) {
+      for (int i=0;i<prim.numVertices;i++)
+        isUsed[prim[i]] = true;
+    }
+    parallel_for_blocked
+      (0,mesh->tets.size(),1024*64,
+       [&](size_t begin, size_t end){
+        for (size_t primID=begin;primID<end;primID++){
+          auto &prim = mesh->tets[primID];
+          for (int i=0;i<prim.numVertices;i++)
+            isUsed[prim[i]] = true;
+        }});
+    for (auto &prim : mesh->pyrs) {
+      for (int i=0;i<prim.numVertices;i++)
+        isUsed[prim[i]] = true;
+    }
+    for (auto &prim : mesh->wedges) {
+      for (int i=0;i<prim.numVertices;i++)
+        isUsed[prim[i]] = true;
+    }
+    for (auto &prim : mesh->hexes) {
+      for (int i=0;i<prim.numVertices;i++)
+        isUsed[prim[i]] = true;
+    }
+
+    std::vector<int> newID(mesh->vertices.size());
+    int curID = 0;
+    for (int i=0;i<newID.size();i++) {
+      if (isUsed[i]) {
+        mesh->vertices[curID] = mesh->vertices[i];
+        if (mesh->perVertex)
+          mesh->perVertex->values[curID] = mesh->perVertex->values[i];
+        newID[i] = curID++;
+      } else {
+        // won't get used, anyway....
+        newID[i] = -1;
+      }
+    }
+    std::cout << "done compacting vertex array, num vertices found " << curID << std::endl;
+    mesh->vertices.resize(curID);
+    mesh->perVertex->values.resize(curID);
+
+    
+    for (auto &prim : mesh->triangles) {
+      for (int i=0;i<prim.numVertices;i++)
+        prim[i] = newID[prim[i]];
+    }
+    for (auto &prim : mesh->quads) {
+      for (int i=0;i<prim.numVertices;i++)
+        prim[i] = newID[prim[i]];
+    }
+    parallel_for_blocked
+      (0,mesh->tets.size(),1024*64,
+       [&](size_t begin, size_t end){
+        for (size_t primID=begin;primID<end;primID++){
+          auto &prim = mesh->tets[primID];
+          for (int i=0;i<prim.numVertices;i++)
+            prim[i] = newID[prim[i]];
+        }});
+    for (auto &prim : mesh->pyrs) {
+      for (int i=0;i<prim.numVertices;i++)
+        prim[i] = newID[prim[i]];
+    }
+    for (auto &prim : mesh->wedges) {
+      for (int i=0;i<prim.numVertices;i++)
+        prim[i] = newID[prim[i]];
+    }
+    for (auto &prim : mesh->hexes) {
+      for (int i=0;i<prim.numVertices;i++)
+        prim[i] = newID[prim[i]];
     }
   }
   

@@ -270,7 +270,7 @@ namespace umesh {
     std::stringstream ss;
 
     if (compact) {
-      ss << "Umesh(";
+      ss << "UMesh(";
       ss << "#verts=" << prettyNumber(vertices.size());
       if (!triangles.empty())
         ss << ",#tris=" << prettyNumber(triangles.size());
