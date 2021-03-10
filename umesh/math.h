@@ -80,7 +80,12 @@ namespace umesh {
   };
   
   inline range1f range1f::including(const float f) const
-  { return { std::min(lower,f),std::max(upper,f) }; }
+  {
+    range1f res;
+    res.lower = std::min(lower,f);
+    res.upper = std::max(upper,f);
+    return res;
+  }
   // inline range1f range1f::including(const range1f &other) const
   // { return { std::min(lower,other,lower),std::max(upper,other.upper) }; }
   
