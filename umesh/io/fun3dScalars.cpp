@@ -25,7 +25,7 @@ namespace umesh {
 
         Fun3DScalarsReader(const std::string &fileName)
         {
-          in = std::ifstream(fileName,std::ios::binary);
+          in.open(fileName,std::ios::binary);
           uint32_t magicNumber = io::readElement<uint32_t>(in);
 
           std::string versionString = io::readString(in);
