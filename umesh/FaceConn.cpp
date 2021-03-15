@@ -404,7 +404,7 @@ namespace umesh {
     tbb::parallel_sort(facets,facets+numFacets,FacetComparator());
     std::cout << "done face sorting" << std::endl;
 # else
-    std::sort(facets,facets+numFacets,FacoetComparator());
+    std::sort(facets,facets+numFacets,FacetComparator());
 # endif
   }
   
