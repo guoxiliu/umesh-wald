@@ -293,9 +293,9 @@ namespace umesh {
       !(lower.x > other.upper.x) &&
       !(lower.y > other.upper.y) &&
       !(lower.z > other.upper.z) &&
-      !(upper.x > other.lower.x) &&
-      !(upper.y > other.lower.y) &&
-      !(upper.z > other.lower.z);
+      !(upper.x < other.lower.x) &&
+      !(upper.y < other.lower.y) &&
+      !(upper.z < other.lower.z);
   }
 
   inline int divRoundUp(int a, int b) { return (a+b-1)/b; }
