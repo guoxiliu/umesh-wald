@@ -26,4 +26,17 @@ target_link_libraries(umeshImportLanderFun3D
   umesh
   )
 
+# ------------------------------------------------------------------
+# tool that takes a fun3d model (with mesh and volume files) and
+# converts them to one umesh per rank and one raw scalars per rank per
+# variable per time step
+# ------------------------------------------------------------------
+add_executable(umeshBreakApartFun3D
+  breakApartFun3D.cpp
+  )
+target_link_libraries(umeshBreakApartFun3D
+  PUBLIC
+  umesh
+  )
+
 
