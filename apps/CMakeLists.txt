@@ -24,6 +24,7 @@ add_executable(umeshInfo
   info.cpp
   )
 target_link_libraries(umeshInfo
+  PUBLIC
   umesh
   )
 
@@ -43,6 +44,7 @@ add_executable(umeshImportOFF
   importOFF.cpp
   )
 target_link_libraries(umeshImportOFF
+  PUBLIC
   umesh
   )
 
@@ -54,6 +56,7 @@ add_executable(umeshImportUGrid64
   importUGrid64.cpp
   )
 target_link_libraries(umeshImportUGrid64
+  PUBLIC
   umesh
   )
 
@@ -65,6 +68,7 @@ add_executable(umeshTetrahedralize
   tetrahedralize.cpp
   )
 target_link_libraries(umeshTetrahedralize
+  PUBLIC
   umesh
   )
 
@@ -81,6 +85,7 @@ add_executable(umeshExtractIsoSurface
   extractIsoSurface.cpp
   )
 target_link_libraries(umeshExtractIsoSurface
+  PUBLIC
   umesh
   )
 
@@ -92,6 +97,7 @@ add_executable(umeshComputeTetConnectivity
   computeTetConnectivity.cpp
   )
 target_link_libraries(umeshComputeTetConnectivity
+  PUBLIC
   umesh
   )
 
@@ -106,6 +112,7 @@ add_executable(umeshComputeShell
 # do not use this any more:  computeShell.cpp
   )
 target_link_libraries(umeshComputeShell
+  PUBLIC
   umesh
   )
 
@@ -118,6 +125,7 @@ add_executable(umeshPartitionSpatially
   partitionSpatially.cpp
   )
 target_link_libraries(umeshPartitionSpatially
+  PUBLIC
   umesh
   )
 
@@ -125,6 +133,7 @@ add_executable(umeshPartitionObjectSpace
   partitionObjectSpace.cpp
   )
 target_link_libraries(umeshPartitionObjectSpace
+  PUBLIC
   umesh
   )
 
@@ -136,6 +145,7 @@ add_executable(umeshExtractSurfaceMesh
   extractSurfaceMesh.cpp
   )
 target_link_libraries(umeshExtractSurfaceMesh
+  PUBLIC
   umesh
   )
 
@@ -148,6 +158,7 @@ add_executable(umeshExtractShell
   extractShell.cpp
   )
 target_link_libraries(umeshExtractShell
+  PUBLIC
   umesh
   )
 
@@ -159,6 +170,7 @@ add_executable(umeshExaToUMesh
   exaToUMesh.cpp
   )
 target_link_libraries(umeshExaToUMesh
+  PUBLIC
   umesh
   )
 
@@ -170,6 +182,7 @@ add_executable(umeshFixNegativeVolumeElements
   fixNegativeVolumeElements.cpp
   )
 target_link_libraries(umeshFixNegativeVolumeElements
+  PUBLIC
   umesh
   )
 
@@ -187,5 +200,6 @@ add_executable(exaTestCases
   exaTestCase.cpp
   )
 target_link_libraries(exaTestCases
+  PUBLIC
   umesh
   )

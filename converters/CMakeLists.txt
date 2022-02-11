@@ -1,5 +1,5 @@
 # ======================================================================== #
-# Copyright 2018-2020 Ingo Wald                                            #
+# Copyright 2018-2022 Ingo Wald                                            #
 #                                                                          #
 # Licensed under the Apache License, Version 2.0 (the "License");          #
 # you may not use this file except in compliance with the License.         #
@@ -14,34 +14,16 @@
 # limitations under the License.                                           #
 # ======================================================================== #
 
-#SET(CUDA_NVCC_FLAGS "-gencode=arch=compute_75,code=compute_75")
-
 # ------------------------------------------------------------------
-# compute connectiviy of a umesh, using GPGPU algorithm - once via
-# cpu/tbb, once via gpu/cuda
+# tools: big lander (the large nasa lander that comes in multiple
+# individual files)
 # ------------------------------------------------------------------
-if (CUDA_FOUND)
-  cuda_add_executable(umeshComputeFacesGPU
-    gpu.cu
-    )
-  target_link_libraries(umeshComputeFacesGPU
-    umesh
+add_executable(umeshImportLanderFun3D
+  importLanderFun3D.cpp
   )
-endif()
-
-add_executable(umeshComputeFacesCPU
-  cpu.cpp
-  )
-target_link_libraries(umeshComputeFacesCPU
+target_link_libraries(umeshImportLanderFun3D
   PUBLIC
   umesh
   )
 
-# reference-only, using umesh/TetConn code
-add_executable(umeshComputeFacesREF
-  ref.cpp
-  )
-target_link_libraries(umeshComputeFacesREF
-  PUBLIC
-  umesh
-  )
+

@@ -22,7 +22,9 @@
 #  include "tbb/parallel_sort.h"
 # endif
 #include <set>
+#ifdef __CUDACC__
 #include <cuda_runtime.h>
+#endif
 #include <algorithm>
 #include <string.h>
 
