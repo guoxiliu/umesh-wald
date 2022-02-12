@@ -30,7 +30,7 @@ namespace umesh {
   /*! list of ALL variables in first rank's scalars file */
   std::vector<std::string> variables;
   /*! list of ALL time steps in first rank's scalars file */
-    std::vector<int>         timeSteps;
+  std::vector<int>         timeSteps;
   
   bool doPart(const std::string &outFileNameBase, int rank)
   {
@@ -80,10 +80,13 @@ namespace umesh {
           
         std::vector<size_t> globalVertexIDs;
         /*! desired time step's scalars for current brick, if provided */
+        PING;
         std::vector<float> scalars
           = io::fun3d::readTimeStep(scalarsFileName,var,ts,
                                     &globalVertexIDs);
+        PING;
         std::ofstream bin(outFileNameScalars,std::ios::binary);
+        PING;
         bin.write((const char *)scalars.data(),scalars.size()*sizeof(scalars[0]));
 std::cout << UMESH_TERMINAL_GREEN 
 << " -> written to " << outFileNameScalars
