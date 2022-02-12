@@ -43,12 +43,15 @@ namespace umesh {
 
           globalVertexIDs.resize(numScalars);
           io::readArray(in,globalVertexIDs.data(),globalVertexIDs.size());
+          // std::cout << "found num vertices " << globalVertexIDs.size() << std::endl;
+          // std::cout << "found num vars " << variableNames.size() << std::endl;
 
           size_t dataBegin = in.tellg();
           for (int tsNo=0;;tsNo++) {
             try {
               uint32_t timeStepID = io::readElement<uint32_t>(in);
               timeStepOffsets[timeStepID] = in.tellg();
+              // std::cout << "time step " << timeStepID << " at ofs " << timeStepOffsets[timeStepID] << std::endl;
               in.seekg(dataBegin
                        +tsNo*(variableNames.size()*globalVertexIDs.size()*sizeof(float)
                               +sizeof(timeStepID)),
@@ -81,8 +84,10 @@ namespace umesh {
               break;
           }
           std::vector<float> timeStepForAllVariables(scalars.size()*variableNames.size());
+          std::cout << "seeking " << offset << std::endl;
           in.seekg(offset,std::ios::beg);
           io::readArray(in,timeStepForAllVariables.data(),timeStepForAllVariables.size());
+          std::cout << "read array " << std::endl;
           // for (int i=0;i<20;i++) std::cout << " " << timeStepForAllVariables[i];
           // std::cout << std::endl;
           
