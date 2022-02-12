@@ -59,7 +59,7 @@ namespace umesh {
     UMesh::SP mesh = io::UGrid32Loader::load(meshFileName);
     std::cout << "loaded part mesh " << mesh->toString() << " " << mesh->getBounds() << std::endl;
 
-    const std::string outFileNameMesh = outFileNameBase + ".umesh";
+    const std::string outFileNameMesh = outFileNameBase + "." + std::to_string(rank) + ".umesh";
     mesh->saveTo(outFileNameMesh);
 
 
@@ -73,7 +73,7 @@ namespace umesh {
         char ts_suffix[100];
         sprintf(ts_suffix,"__ts_%07i",ts);
         const std::string outFileNameScalars
-          = outFileNameBase + "__var_" + var + ts_suffix + ".floats";
+          = outFileNameBase + "__var_" + var + ts_suffix + "." + std::to_string(rank) + ".floats";
         
         std::cout << "reading time step " << ts
                   << " from " << scalarsFileName << std::endl;
@@ -85,6 +85,9 @@ namespace umesh {
                                     &globalVertexIDs);
         std::ofstream bin(outFileNameScalars,std::ios::binary);
         bin.write((const char *)scalars.data(),scalars.size()*sizeof(scalars[0]));
+std::cout << UMESH_TERMINAL_GREEN 
+<< " -> written to " << outFileNameScalars
+<< UMESH_TERMINAL_DEFAULT << std::endl;
       }
     }
     std::cout << " >>> done part " << rank << ", got " << mesh->toString(false) << " (note it's OK that bounds aren't set yet)" << std::endl;
