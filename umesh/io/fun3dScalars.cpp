@@ -29,8 +29,8 @@ namespace umesh {
           uint32_t magicNumber = io::readElement<uint32_t>(in);
 
           std::string versionString = io::readString(in);
-          std::cout << "Found fun3d file with version string "
-                    << versionString << std::endl;
+     //     std::cout << "Found fun3d file with version string "
+      //              << versionString << std::endl;
       
           uint32_t ignore = io::readElement<uint32_t>(in);
           numScalars = io::readElement<uint32_t>(in);
@@ -38,7 +38,7 @@ namespace umesh {
           variableNames.resize(io::readElement<uint32_t>(in));
           for (auto &var : variableNames) {
             var = io::readString(in);
-            std::cout << "Found variable '" << var << "'" << std::endl;
+       //     std::cout << "Found variable '" << var << "'" << std::endl;
           }
 
           globalVertexIDs.resize(numScalars);
