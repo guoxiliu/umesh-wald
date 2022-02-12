@@ -80,13 +80,13 @@ namespace umesh {
           
         std::vector<size_t> globalVertexIDs;
         /*! desired time step's scalars for current brick, if provided */
-        PING;
         std::vector<float> scalars
           = io::fun3d::readTimeStep(scalarsFileName,var,ts,
                                     &globalVertexIDs);
-        PING;
+        for (int i=0;i<10;i++)
+          std::cout << scalars[i] << " ";
+        std::cout << std::endl;
         std::ofstream bin(outFileNameScalars,std::ios::binary);
-        PING;
         bin.write((const char *)scalars.data(),scalars.size()*sizeof(scalars[0]));
 std::cout << UMESH_TERMINAL_GREEN 
 << " -> written to " << outFileNameScalars
