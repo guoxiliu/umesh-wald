@@ -58,6 +58,14 @@ namespace umesh {
 
     UMesh::SP mesh = io::UGrid32Loader::load(meshFileName);
     std::cout << "loaded part mesh " << mesh->toString() << " " << mesh->getBounds() << std::endl;
+#if 1
+    mesh->tets.resize(meta.tets);
+    mesh->pyrs.resize(meta.pyrs);
+    mesh->wedges.resize(meta.wedges);
+    mesh->hexes.resize(meta.hexes);
+    // shrink to exclude the macrocells!
+    std::cout << "after removing the ghost cells: " << mesh->toString() << std::endl;
+#endif
 
     const std::string outFileNameMesh = outFileNameBase + "." + std::to_string(rank) + ".umesh";
     mesh->saveTo(outFileNameMesh);
