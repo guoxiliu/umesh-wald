@@ -59,6 +59,9 @@ namespace umesh {
     UMesh::SP mesh = io::UGrid32Loader::load(meshFileName);
     std::cout << "loaded part mesh " << mesh->toString() << " " << mesh->getBounds() << std::endl;
 #if 1
+    const std::string outFileNameMeshGhost = outFileNameBase + "." + std::to_string(rank) + "-with-ghost-cells.umesh";
+    mesh->saveTo(outFileNameMeshGhost);
+
     mesh->tets.resize(meta.tets);
     mesh->pyrs.resize(meta.pyrs);
     mesh->wedges.resize(meta.wedges);
