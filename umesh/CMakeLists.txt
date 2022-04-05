@@ -118,6 +118,9 @@ target_sources(umesh PRIVATE
 #  umesh_common
 #  )
 
+target_include_directories(umesh PUBLIC
+  ${PROJECT_SOURCE_DIR}
+  )
 
 
 

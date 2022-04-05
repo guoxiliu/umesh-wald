@@ -15,7 +15,7 @@
 # ======================================================================== #
 
 option(UMESH_USE_CUDA "Build w/ CUDA support?" OFF)
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.16)
 
 if (POLICY CMP0048)
   cmake_policy(SET CMP0048 NEW)
