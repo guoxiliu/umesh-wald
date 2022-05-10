@@ -146,6 +146,8 @@ namespace umesh {
   {
     UMesh::SP mesh = std::make_shared<UMesh>();
     std::ifstream in(fileName, std::ios_base::binary);
+    if (!in.good())
+      throw std::runtime_error("#umesh: could not open '"+fileName+"'");
     mesh->readFrom(in);
     return mesh;
   }
