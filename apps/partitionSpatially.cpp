@@ -206,13 +206,16 @@ namespace umesh {
       range1f valueRange;
       writeBrick(in,outFileBase+ext,brick,valueRange);
       brickDomains.push_back(brick->domain);
+      valueRanges.push_back(valueRange);
       delete brick;
     }
 
     std::ofstream boundsFile(outFileBase+".domains",std::ios::binary);
+    std::cout << "writing " << brickDomains.size() << " brick domains" << std::endl;
     io::writeVector(boundsFile,brickDomains);
+    std::cout << "writing " << valueRanges.size() << " brick value ranges" << std::endl;
     io::writeVector(boundsFile,valueRanges);
-    std::cout << "done wirting domains... done all" << std::endl;
+    std::cout << "done writing domains... done all" << std::endl;
   }
   
 } // ::umesh
