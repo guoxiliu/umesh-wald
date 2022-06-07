@@ -55,7 +55,7 @@ void readFile(const std::string fileName)
   std::cout << " - found " << numCells << " cells" << std::endl;
   for (int cellID=0;cellID<numCells;cellID++) {
     vtkIdType cellPoints;
-    vtkIdType *pointIDs;
+    const vtkIdType *pointIDs;
     grid->GetCellPoints(cellID,cellPoints,pointIDs);
 
     if (cellPoints == 8) {
@@ -72,7 +72,7 @@ void readFile(const std::string fileName)
       }
     } else
       throw std::runtime_error("unsupported number of points per cell : "
-                               +std::to_string((int)numPoints));
+                               +std::to_string((int)cellPoints));
     
     // std::cout << " cell N=" << numPoints << " { ";
     // for (int i = 0; i<numPoints; i++)
@@ -106,9 +106,6 @@ void readFile(const std::string fileName)
   std::cout << "done reading " << fileName << " : "
             << std::endl << "  " << (vertex.size()/3) << " vertices "
             << std::endl << "  " << (hex_index.size()/8) << " hexes" << std::endl;
-
-  
-
 }
 
 

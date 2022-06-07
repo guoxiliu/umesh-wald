@@ -39,4 +39,4 @@ target_link_libraries(umeshBreakApartFun3D
   umesh
   )
 
-
+add_subdirectory(vtu)
