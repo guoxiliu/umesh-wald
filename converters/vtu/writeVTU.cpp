@@ -67,6 +67,8 @@ int main ( int argc, char *argv[] )
   }
   grid->SetPoints(points);
 
+  std::cout << "Successfully insert all the points!" << std::endl;
+
   // insert per-vertex data 
   if (inMesh->perVertex == nullptr) {
     std::cout << "The input umesh does not contain per-vertex data!" << std::endl;
@@ -78,6 +80,7 @@ int main ( int argc, char *argv[] )
     arr->SetArray(&inMesh->perVertex->values.operator[](0), inMesh->perVertex->values.size(), 1);
     std::cout << "vtk scalar field size: " << arr->GetNumberOfTuples() << std::endl;
     grid->GetPointData()->AddArray(arr);
+    std::cout << "Successfully insert the scalar value for the vertex!" << std::endl;
   }
 
   // insert triangles
@@ -86,6 +89,7 @@ int main ( int argc, char *argv[] )
       vtkIdType triangle[] = {tri[0], tri[1], tri[2]};
       grid->InsertNextCell(VTK_TRIANGLE, 3, triangle);
     }
+    std::cout << "Successfully insert all the triangles!" << std::endl;
   }
 
   // insert quadrangles
@@ -94,6 +98,7 @@ int main ( int argc, char *argv[] )
       vtkIdType quadrangle[] = {quad[0], quad[1], quad[2], quad[3]};
       grid->InsertNextCell(VTK_QUAD, 4, quadrangle);
     }
+    std::cout << "Successfully insert all the quadrangles!" << std::endl;
   }
 
   // insert tetrahedra
@@ -102,6 +107,7 @@ int main ( int argc, char *argv[] )
       vtkIdType tetrahedron[] = {tet[0], tet[1], tet[2], tet[3]};
       grid->InsertNextCell(VTK_TETRA, 4, tetrahedron);
     }
+    std::cout << "Successfully insert all the tetrahedra!" << std::endl;
   }
 
   // insert pyramids
@@ -110,6 +116,7 @@ int main ( int argc, char *argv[] )
       vtkIdType pyramid[] = {pyr[0], pyr[1], pyr[2], pyr[3], pyr[4]};
       grid->InsertNextCell(VTK_PYRAMID, 5, pyramid);
     }
+    std::cout << "Successfully insert all the pyramids!" << std::endl;
   }
 
   // insert wedges
@@ -118,14 +125,16 @@ int main ( int argc, char *argv[] )
       vtkIdType wedge[] = {we[0], we[1], we[2], we[3], we[4], we[5]};
       grid->InsertNextCell(VTK_WEDGE, 6, wedge);
     }
+    std::cout << "Successfully insert all the wedges!" << std::endl;
   }
 
-  // insert hexahedron
+  // insert hexahedra
   if (!inMesh->hexes.empty()) {
     for (auto &hex : inMesh->hexes) {
       vtkIdType hexahedron[] = {hex[0], hex[1], hex[2], hex[3], hex[4], hex[5], hex[6], hex[7]};
       grid->InsertNextCell(VTK_HEXAHEDRON, 8, hexahedron);
     }
+    std::cout << "Successfully insert all the hexahedra!" << std::endl;
   }
 
   std::cout << "=======================================================" << std::endl;
