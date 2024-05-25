@@ -1,7 +1,7 @@
 
 cmake_minimum_required(VERSION 3.3 FATAL_ERROR)
 
-project(readVTU)
+project(convertVTU)
 
 find_package(VTK COMPONENTS 
   vtkCommonColor
@@ -12,7 +12,7 @@ find_package(VTK COMPONENTS
   vtkRenderingFreeType
   vtkRenderingOpenGL2 QUIET)
 if (NOT VTK_FOUND)
-  message("VTK Not Found. Skipping readVTU.")
+  message("VTK Not Found. Skipping convertVTU.")
   return ()
 endif()
 message (STATUS "VTK_VERSION: ${VTK_VERSION}")

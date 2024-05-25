@@ -48,7 +48,7 @@ int main ( int argc, char *argv[] )
   
   if(inFileName.empty() || outFileName.empty())
   {
-    std::cerr << "Usage: " << argv[0] << " -o outfile <infile.umesh>" << std::endl;
+    std::cerr << "Usage: " << argv[0] << " -o outfile.vtu <infile.umesh>" << std::endl;
     return EXIT_FAILURE;
   }
 
