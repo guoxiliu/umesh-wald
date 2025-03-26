@@ -15,24 +15,6 @@
 #include "umesh/math.h"
 #include "umesh/UMesh.h"
 
-std::vector<double> vertex;
-std::vector<double> perCellValue;
-std::vector<size_t> hex_index;
-
-#ifndef PRINT
-# define PRINT(var) std::cout << #var << "=" << var << std::endl;
-# define PING std::cout << __FILE__ << "::" << __LINE__ << ": " << __PRETTY_FUNCTION__ << std::endl;
-#endif
-
-
-void readFile(const std::string fileName)
-{
-  std::cout << "parsing umesh file " << fileName << std::endl;
-  umesh::UMesh::SP inMesh = umesh::io::loadBinaryUMesh(fileName);
-  std::cout << "Done reading.\n UMesh info:\n" << inMesh->toString(false) << std::endl;
-}
-
-
 int main ( int argc, char *argv[] )
 {
   std::string outFileName = "";

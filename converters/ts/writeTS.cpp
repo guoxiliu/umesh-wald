@@ -1,30 +1,13 @@
 
 /**
- * A tool to convert from umesh format to vtk vtu format
+ * A tool to convert from umesh format to ts format
  * Author: Guoxi Liu (liuguoxi888@gmail.com)
+ * Date: 05/26/2024
  */
 
 #include "umesh/io/UMesh.h"
 #include "umesh/math.h"
 #include "umesh/UMesh.h"
-
-std::vector<double> vertex;
-std::vector<double> perCellValue;
-std::vector<size_t> hex_index;
-
-#ifndef PRINT
-# define PRINT(var) std::cout << #var << "=" << var << std::endl;
-# define PING std::cout << __FILE__ << "::" << __LINE__ << ": " << __PRETTY_FUNCTION__ << std::endl;
-#endif
-
-
-void readFile(const std::string fileName)
-{
-  std::cout << "parsing umesh file " << fileName << std::endl;
-  umesh::UMesh::SP inMesh = umesh::io::loadBinaryUMesh(fileName);
-  std::cout << "Done reading.\n UMesh info:\n" << inMesh->toString(false) << std::endl;
-}
-
 
 int main ( int argc, char *argv[] )
 {
@@ -52,56 +35,36 @@ int main ( int argc, char *argv[] )
 
   // check triangles
   if (!inMesh->triangles.empty()) {
-    // for (auto &tri : inMesh->triangles) {
-    //   vtkIdType triangle[] = {tri[0], tri[1], tri[2]};
-    //   grid->InsertNextCell(VTK_TRIANGLE, 3, triangle);
-    // }
-    // std::cout << "Successfully insert all the triangles!" << std::endl;
-    std::cerr << "Only tetrahedra are allowed in .ts file, triangles detected!" << std::endl;
-    return EXIT_FAILURE;
+    std::cerr << "Warning: Only tetrahedra are allowed in .ts file, triangles detected!" << std::endl;
+    std::cout << "Skipping triangles" << std::endl;
+    // return EXIT_FAILURE;
   }
 
   // check quadrangles
   if (!inMesh->quads.empty()) {
-    // for (auto &quad : inMesh->quads) {
-    //   vtkIdType quadrangle[] = {quad[0], quad[1], quad[2], quad[3]};
-    //   grid->InsertNextCell(VTK_QUAD, 4, quadrangle);
-    // }
-    // std::cout << "Successfully insert all the quadrangles!" << std::endl;
-    std::cerr << "Only tetrahedra are allowed in .ts file, quadrangles detected!" << std::endl;
-    return EXIT_FAILURE;
+    std::cerr << "Warning: Only tetrahedra are allowed in .ts file, quadrangles detected!" << std::endl;
+    std::cout << "Skipping quadrangles..." << std::endl;
+    // return EXIT_FAILURE;
   }
 
   // check pyramids
   if (!inMesh->pyrs.empty()) {
-    // for (auto &pyr : inMesh->pyrs) {
-    //   vtkIdType pyramid[] = {pyr[0], pyr[1], pyr[2], pyr[3], pyr[4]};
-    //   grid->InsertNextCell(VTK_PYRAMID, 5, pyramid);
-    // }
-    // std::cout << "Successfully insert all the pyramids!" << std::endl;
-    std::cerr << "Only tetrahedra are allowed in .ts file, pyramids detected!" << std::endl;
-    return EXIT_FAILURE;
+    std::cerr << "Warning: Only tetrahedra are allowed in .ts file, pyramids detected!" << std::endl;
+    std::cout << "Skipping pyramids..." << std::endl;
+    // return EXIT_FAILURE;
   }
 
   // check wedges
   if (!inMesh->wedges.empty()) {
-    // for (auto &we : inMesh->wedges) {
-    //   vtkIdType wedge[] = {we[0], we[1], we[2], we[3], we[4], we[5]};
-    //   grid->InsertNextCell(VTK_WEDGE, 6, wedge);
-    // }
-    // std::cout << "Successfully insert all the wedges!" << std::endl;
-    std::cerr << "Only tetrahedra are allowed in .ts file, wedges detected!" << std::endl;
-    return EXIT_FAILURE;
+    std::cerr << "Warning: Only tetrahedra are allowed in .ts file, wedges detected!" << std::endl;
+    std::cout << "Skipping wedges..." << std::endl;
+    // return EXIT_FAILURE;
   }
 
   // check hexahedra
   if (!inMesh->hexes.empty()) {
-    // for (auto &hex : inMesh->hexes) {
-    //   vtkIdType hexahedron[] = {hex[0], hex[1], hex[2], hex[3], hex[4], hex[5], hex[6], hex[7]};
-    //   grid->InsertNextCell(VTK_HEXAHEDRON, 8, hexahedron);
-    // }
-    // std::cout << "Successfully insert all the hexahedra!" << std::endl;
-    std::cerr << "Only tetrahedra are allowed in .ts file, hexahedra detected!" << std::endl;
+    std::cerr << "Warning: Only tetrahedra are allowed in .ts file, hexahedra detected!" << std::endl;
+    std::cout << "Skipping hexes..." << std::endl;
     return EXIT_FAILURE;
   }
 
