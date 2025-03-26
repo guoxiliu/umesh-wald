@@ -115,7 +115,7 @@ int main ( int argc, char *argv[] )
 
   // insert points
   size_t n = inMesh->vertices.size(), m = inMesh->tets.size();
-  fprintf(file, "%d %d\n", n, m);
+  fprintf(file, "%ld %ld\n", n, m);
   int barWidth = 60;
   float progress = 0.0f;
 
@@ -175,7 +175,7 @@ int main ( int argc, char *argv[] )
     for (size_t i = 0; i < m; ++i) {
       // print out the progress bar
       float cur = float(i + 1) / m;
-      if (cur - progress >= 0.08f || i == n-1) {
+      if (cur - progress >= 0.08f || i == m-1) {
         int pos = barWidth * cur;
         std::cout << "[";
         for (int j = 0; j < barWidth; ++j) {
@@ -188,7 +188,7 @@ int main ( int argc, char *argv[] )
         progress = cur;
       }
       auto &tet = inMesh->tets[i];
-      fprintf(file, "%d %d %d %d\n", tet[0], tet[1], tet[2], tet[3]);
+      fprintf(file, "%ld %ld %ld %ld\n", tet[0], tet[1], tet[2], tet[3]);
     }
     std::cout << "\nSuccessfully insert all the tetrahedra!" << std::endl;
   }
